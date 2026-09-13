@@ -1,0 +1,23 @@
+{
+  "name": "malajiang-line-bot",
+  "version": "1.0.0",
+  "description": "麻辣工坊 LINE 官方帳號客戶開發自動化系統（Webhook 機器人 + LIFF 表單 + 後台 CRM 看板）",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "migrate": "node src/migrate.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
+    "pg": "^8.12.0"
+  }
+}

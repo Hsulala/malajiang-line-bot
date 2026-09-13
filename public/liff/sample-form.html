@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>樣品申請表單｜麻辣工坊</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  :root{
+    --accent:#C1401D; --accent-strong:#9A2E13; --bg:#FBF8F4; --surface:#fff;
+    --border:#E4DACD; --text:#2B211A; --muted:#8A7A6B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
+    padding:20px 16px 60px;
+  }
+  h1{ font-size:18px; margin:4px 0 2px; }
+  p.sub{ color:var(--muted); font-size:13px; margin:0 0 20px; }
+  label{ display:block; font-size:13px; font-weight:600; margin:16px 0 6px; }
+  input[type=text], input[type=tel], textarea{
+    width:100%; padding:11px 12px; border:1px solid var(--border); border-radius:10px;
+    font-size:15px; background:var(--surface); color:var(--text); font-family:inherit;
+  }
+  textarea{ min-height:70px; resize:vertical; }
+  .samples{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .chip{
+    border:1px solid var(--border); border-radius:100px; padding:8px 14px; font-size:13.5px;
+    cursor:pointer; user-select:none; background:var(--surface);
+  }
+  .chip.selected{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  button#submitBtn{
+    width:100%; margin-top:26px; padding:14px; border:none; border-radius:12px;
+    background:var(--accent); color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+  }
+  button#submitBtn:disabled{ opacity:.5; }
+  #status{ margin-top:14px; font-size:13px; text-align:center; color:var(--muted); }
+  #status.error{ color:var(--accent-strong); }
+  #status.success{ color:#3F7A4F; }
+</style>
+</head>
+<body>
+  <h1>樣品申請表單</h1>
+  <p class="sub">請填寫收件資料，並選擇想試的品項，送出後我們會盡快為您安排寄送。</p>
+
+  <label for="storeName">店名 / 公司名稱 *</label>
+  <input type="text" id="storeName" placeholder="例如：好味道火鍋">
+
+  <label for="contactName">聯絡人 *</label>
+  <input type="text" id="contactName" placeholder="例如：王小姐">
+
+  <label for="phone">聯絡電話 *</label>
+  <input type="tel" id="phone" placeholder="例如：0912-345-678">
+
+  <label for="address">收件地址 *</label>
+  <textarea id="address" placeholder="例如：新竹市東區光復路二段188號"></textarea>
+
+  <label id="samplesLabel">想試的品項（可複選）</label>
+  <div class="samples" id="samples"></div>
+
+  <button id="submitBtn">送出申請</button>
+  <div id="status"></div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var lineKey = params.get('line') || 'malajiang';
+  var selected = new Set();
+  var config = null;
+  var statusEl = document.getElementById('status');
+  var submitBtn = document.getElementById('submitBtn');
+
+  function setStatus(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = kind || '';
+  }
+
+  function renderSamples(list) {
+    var wrap = document.getElementById('samples');
+    wrap.innerHTML = '';
+    (list || []).forEach(function (name) {
+      var chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = name;
+      chip.addEventListener('click', function () {
+        if (selected.has(name)) { selected.delete(name); chip.classList.remove('selected'); }
+        else { selected.add(name); chip.classList.add('selected'); }
+      });
+      wrap.appendChild(chip);
+    });
+  }
+
+  async function loadConfig() {
+    var resp = await fetch('/api/liff/config');
+    config = await resp.json();
+    var line = config.productLines[lineKey] || config.productLines.malajiang;
+    document.title = '樣品申請表單｜' + line.label;
+    document.getElementById('samplesLabel').textContent = '想試的 ' + line.label + ' 品項（可複選）';
+    renderSamples(line.samples);
+    return config;
+  }
+
+  async function init() {
+    try {
+      await loadConfig();
+      await liff.init({ liffId: config.liffId });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      setStatus('');
+    } catch (err) {
+      console.error(err);
+      setStatus('LINE 初始化失敗，請從 LINE 聊天室內的連結重新開啟本表單。', 'error');
+      submitBtn.disabled = true;
+    }
+  }
+
+  async function submit() {
+    var storeName = document.getElementById('storeName').value.trim();
+    var contactName = document.getElementById('contactName').value.trim();
+    var phone = document.getElementById('phone').value.trim();
+    var address = document.getElementById('address').value.trim();
+
+    if (!storeName || !contactName || !phone || !address) {
+      setStatus('請填寫完整店名、聯絡人、電話、地址。', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    setStatus('送出中...');
+
+    try {
+      var idToken = liff.getIDToken();
+      var resp = await fetch('/api/liff/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idToken: idToken,
+          storeName: storeName,
+          contactName: contactName,
+          phone: phone,
+          address: address,
+          interestLine: lineKey,
+          samples: Array.from(selected),
+        }),
+      });
+      var data = await resp.json();
+      if (!resp.ok || !data.ok) {
+        throw new Error(data.error || '送出失敗');
+      }
+      setStatus('已送出！我們收到您的申請了，稍後會為您安排出貨。', 'success');
+      setTimeout(function () {
+        if (liff.isInClient()) liff.closeWindow();
+      }, 1800);
+    } catch (err) {
+      console.error(err);
+      setStatus(err.message || '送出失敗，請稍後再試一次。', 'error');
+      submitBtn.disabled = false;
+    }
+  }
+
+  submitBtn.addEventListener('click', submit);
+  init();
+})();
+</script>
+</body>
+</html>
