@@ -2,7 +2,13 @@ const express = require('express');
 const config = require('./config');
 const line = require('./lineClient');
 const repo = require('./customerRepo');
+const orderRepo = require('./orderRepo');
+const faqRepo = require('./faqRepo');
+const { isRepeatCustomer, isLikelyOrderMessage } = require('./orderDetector');
 const { WELCOME_MESSAGE, FALLBACK_MESSAGE, GENERIC_REPLY_ACK, PRODUCT_LINES, matchProductLine } = require('./productLines');
+
+const ORDER_MESSAGE_ACK =
+  '收到您的訂購訊息囉！老闆確認後會盡快跟您聯繫確認明細與出貨時間～';
 
 const router = express.Router();
 
@@ -54,6 +60,25 @@ async function handleEvent(event) {
   if (event.type === 'message' && event.message.type === 'text') {
     const text = event.message.text || '';
     const customer = await repo.ensureCustomerByLineUserId(userId, null);
+
+    // 熟客直接傳文字下單：只有「已經出過貨/追蹤中/已成交」的熟客才會判斷。
+    // 放在最前面判斷，避免下單訊息裡剛好提到「麻辣醬」之類的品項名稱時，
+    // 被誤判成客戶在重新挑選產品線。記錄下來 + 通知老闆，但不會自動當成正式訂單
+    // （一定要老闆在後台確認），設計精神跟樣品訂單一致。
+    if (isRepeatCustomer(customer) && isLikelyOrderMessage(text)) {
+      await orderRepo.createOrderMessage(customer.id, text);
+      await repo.addTimelineEvent(customer.id, `客戶疑似傳送下單訊息：${text}`);
+      if (config.line.ownerUserId) {
+        await line.pushMessage(config.line.ownerUserId, [
+          line.textMessage(
+            `🛒 疑似下單通知\n店家：${customer.store_name || customer.display_name || '(尚未填寫店名)'}\n內容：${text}\n\n請至後台「訂單記錄」確認`
+          ),
+        ]);
+      }
+      await line.replyMessage(event.replyToken, [line.textMessage(ORDER_MESSAGE_ACK)]);
+      return;
+    }
+
     const productLine = matchProductLine(text);
 
     if (productLine) {
@@ -87,6 +112,15 @@ async function handleEvent(event) {
         ]);
       }
       await line.replyMessage(event.replyToken, [line.textMessage(GENERIC_REPLY_ACK)]);
+      return;
+    }
+
+    // FAQ 知識庫：老闆有在後台開啟「自動回覆」的問答，依關鍵字比對命中就直接回覆
+    const activeFaqs = await faqRepo.listActiveAutoReplyFaqs();
+    const matchedFaq = faqRepo.matchFaq(text, activeFaqs);
+    if (matchedFaq) {
+      await repo.addTimelineEvent(customer.id, `機器人自動回覆 FAQ：${matchedFaq.question}`);
+      await line.replyMessage(event.replyToken, [line.textMessage(matchedFaq.answer)]);
       return;
     }
 

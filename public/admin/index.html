@@ -91,6 +91,17 @@
   .ship-form{ display:flex; flex-direction:column; gap:8px; background:var(--surface-2); border-radius:10px; padding:12px; }
   .ship-form input, .ship-form textarea{ border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; }
   .loading, .empty{ padding:40px; text-align:center; color:var(--text-muted); font-size:13px; }
+  .list-row{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+  .list-row-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+  .list-row-title{ font-weight:700; font-size:13.5px; }
+  .list-row-meta{ font-size:11.5px; color:var(--text-faint); }
+  .list-row-body{ font-size:13px; color:var(--text); white-space:pre-wrap; line-height:1.6; }
+  .list-row-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn.small{ padding:6px 12px; font-size:12px; }
+  .faq-form label{ font-size:11px; color:var(--text-faint); font-weight:600; display:block; margin:12px 0 4px; }
+  .faq-form input[type=text]{ width:100%; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; }
+  .faq-form textarea{ width:100%; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; min-height:90px; resize:vertical; }
+  .checkbox-row{ display:flex; align-items:center; gap:8px; font-size:13px; margin-top:12px; }
   .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:#fff; padding:10px 18px; border-radius:100px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:40; }
   .toast.show{ opacity:1; }
   @media (max-width:860px){ .stats{ grid-template-columns:repeat(2,1fr); } .field-grid{ grid-template-columns:1fr 1fr; } }
@@ -116,17 +127,47 @@
     </div>
   </header>
 
-  <div class="stats" id="stats"></div>
-
-  <div class="board-head">
-    <div>
-      <h2>客戶開發看板</h2>
-      <p>依目前所在階段自動分類，點擊卡片查看完整資料與互動歷程</p>
-    </div>
-    <button class="btn ghost" id="refreshBtn">重新整理</button>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-view="board">客戶看板</button>
+    <button class="tab-btn" data-view="orders">訂單記錄</button>
+    <button class="tab-btn" data-view="faq">FAQ 知識庫</button>
   </div>
 
-  <div class="board" id="board"><div class="loading">載入中...</div></div>
+  <div class="view active" id="boardView">
+    <div class="stats" id="stats"></div>
+
+    <div class="board-head">
+      <div>
+        <h2>客戶開發看板</h2>
+        <p>依目前所在階段自動分類，點擊卡片查看完整資料與互動歷程</p>
+      </div>
+      <button class="btn ghost" id="refreshBtn">重新整理</button>
+    </div>
+
+    <div class="board" id="board"><div class="loading">載入中...</div></div>
+  </div>
+
+  <div class="view" id="ordersView">
+    <div class="board-head">
+      <div>
+        <h2>熟客文字下單記錄</h2>
+        <p>機器人偵測到熟客傳送疑似下單訊息時會記在這裡，確認後請手動處理實際出貨（不會自動出貨）</p>
+      </div>
+      <button class="btn ghost" id="ordersRefreshBtn">重新整理</button>
+    </div>
+    <div id="ordersList"><div class="loading">載入中...</div></div>
+  </div>
+
+  <div class="view" id="faqView">
+    <div class="board-head">
+      <div>
+        <h2>FAQ 知識庫</h2>
+        <p>老闆可自行新增/編輯/刪除常見問答。「開啟自動回覆」的問答，客戶在 LINE 問到關鍵字時機器人會直接回覆；沒開啟的僅供內部參考。</p>
+      </div>
+      <button class="btn primary" id="addFaqBtn">＋ 新增問答</button>
+    </div>
+    <div id="faqList"><div class="loading">載入中...</div></div>
+  </div>
 </div>
 
 <div class="scrim" id="scrim"></div>

@@ -2,6 +2,8 @@ const express = require('express');
 const config = require('./config');
 const auth = require('./adminAuth');
 const repo = require('./customerRepo');
+const orderRepo = require('./orderRepo');
+const faqRepo = require('./faqRepo');
 const line = require('./lineClient');
 const { PRODUCT_LINES } = require('./productLines');
 
@@ -112,6 +114,80 @@ router.post('/api/admin/customers/:id/mark-processed', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, error: '標記失敗' });
+  }
+});
+
+// ---- 熟客文字下單記錄 ----
+router.get('/api/admin/orders', async (req, res) => {
+  try {
+    const status = req.query.status || null;
+    const orders = await orderRepo.listOrderMessages(status);
+    res.json({ ok: true, orders });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '讀取訂單記錄失敗' });
+  }
+});
+
+router.post('/api/admin/orders/:id/status', async (req, res) => {
+  try {
+    const { status, note } = req.body || {};
+    const updated = await orderRepo.updateOrderMessageStatus(req.params.id, status, note);
+    if (!updated) return res.status(404).json({ ok: false, error: '找不到這筆訂單記錄' });
+    res.json({ ok: true, order: updated });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok: false, error: err.message || '更新訂單記錄失敗' });
+  }
+});
+
+// ---- FAQ / 知識庫 ----
+router.get('/api/admin/faqs', async (req, res) => {
+  try {
+    const faqs = await faqRepo.listFaqs();
+    res.json({ ok: true, faqs });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '讀取知識庫失敗' });
+  }
+});
+
+router.post('/api/admin/faqs', async (req, res) => {
+  try {
+    const { category, question, answer, keywords, isActive, autoReply } = req.body || {};
+    if (!question || !answer) {
+      return res.status(400).json({ ok: false, error: '請填寫問題與答案' });
+    }
+    const faq = await faqRepo.createFaq({ category, question, answer, keywords, isActive, autoReply });
+    res.json({ ok: true, faq });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '新增問答失敗' });
+  }
+});
+
+router.patch('/api/admin/faqs/:id', async (req, res) => {
+  try {
+    const { category, question, answer, keywords, isActive, autoReply } = req.body || {};
+    if (!question || !answer) {
+      return res.status(400).json({ ok: false, error: '請填寫問題與答案' });
+    }
+    const faq = await faqRepo.updateFaq(req.params.id, { category, question, answer, keywords, isActive, autoReply });
+    if (!faq) return res.status(404).json({ ok: false, error: '找不到這則問答' });
+    res.json({ ok: true, faq });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '更新問答失敗' });
+  }
+});
+
+router.delete('/api/admin/faqs/:id', async (req, res) => {
+  try {
+    await faqRepo.deleteFaq(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '刪除問答失敗' });
   }
 });
 
