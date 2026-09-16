@@ -71,7 +71,7 @@ async function handleEvent(event) {
       if (config.line.ownerUserId) {
         await line.pushMessage(config.line.ownerUserId, [
           line.textMessage(
-            `🛒 疑似下單通知\n店家：${customer.store_name || customer.display_name || '(尚未填寫店名)'}\n內容：${text}\n\n請至後台「訂單記錄」確認`
+            `【疑似下單通知】\n店家：${customer.store_name || customer.display_name || '(尚未填寫店名)'}\n內容：${text}\n\n請至後台「訂單記錄」確認`
           ),
         ]);
       }
@@ -88,7 +88,7 @@ async function handleEvent(event) {
         line.textMessage(productLine.introMessage),
         line.liffLinkMessage(
           '請點此填寫收件資料與想試的品項',
-          '📋 開啟樣品申請表單',
+          '▸ 開啟樣品申請表單',
           liffUrl
         ),
       ]);
@@ -107,7 +107,7 @@ async function handleEvent(event) {
       if (config.line.ownerUserId) {
         await line.pushMessage(config.line.ownerUserId, [
           line.textMessage(
-            `📩 客戶回覆通知\n店家：${customer.store_name || customer.display_name || '(尚未填寫店名)'}\n內容：${text}`
+            `【客戶回覆通知】\n店家：${customer.store_name || customer.display_name || '(尚未填寫店名)'}\n內容：${text}`
           ),
         ]);
       }

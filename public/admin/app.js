@@ -373,7 +373,7 @@
             '<div>' + autoPill + ' ' + activePill + '</div>' +
           '</div>' +
           '<div class="list-row-body">' + escapeHtml(f.answer) + '</div>' +
-          (f.internal_note ? '<div class="list-row-body" style="color:var(--warning);font-size:12px;">⚠️ 內部備註：' + escapeHtml(f.internal_note) + '</div>' : '') +
+          (f.internal_note ? '<div class="list-row-body" style="color:var(--warning);font-size:12px;">【內部備註】' + escapeHtml(f.internal_note) + '</div>' : '') +
           '<div class="list-row-actions">' +
             '<button class="btn ghost small" data-faq-edit="' + f.id + '">編輯</button>' +
           '</div>' +

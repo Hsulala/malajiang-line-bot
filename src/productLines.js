@@ -5,7 +5,7 @@
 // 之後補齊真正的樣品清單/話術，直接改這個檔案裡對應的欄位即可，不需要重新部署程式邏輯結構。
 
 const WELCOME_MESSAGE =
-  '❤️歡迎光臨 麻辣醬工廠❤️\n' +
+  '◆ 歡迎光臨 麻辣醬工廠 ◆\n' +
   '我們本身能做的服務有這些：\n' +
   '◆ 各式乾辣椒、中藥材、濃縮高湯\n' +
   '◆ 麻辣醬、辣椒醬、高湯粉代工\n' +
@@ -40,7 +40,7 @@ const PRODUCT_LINES = {
       '滷包',
     ],
     shippedMessage:
-      '✅ 已為您安排出貨：\n{{shippingNote}}\n' +
+      '【出貨通知】已為您安排出貨：\n{{shippingNote}}\n' +
       '樣品箱較小會分兩件寄送，僅收一次費用唷～',
     d2Message: '請問一下唷，後來樣品都有收到嗎？\n（如果沒收到濃縮高湯，就不會有便利袋唷）',
     d16Message:
@@ -58,7 +58,7 @@ const PRODUCT_LINES = {
       '[TODO：中藥材產品線話術待補]\n' +
       '好的～針對中藥材相關產品，我們也有提供代工服務，實際樣品項目與報價之後補上。',
     samples: ['[TODO：中藥材樣品項目1]', '[TODO：中藥材樣品項目2]'],
-    shippedMessage: '✅ 已為您安排出貨：\n{{shippingNote}}',
+    shippedMessage: '【出貨通知】已為您安排出貨：\n{{shippingNote}}',
     d2Message: '[TODO：中藥材 D+2 話術待補] 請問樣品都有收到嗎？',
     d16Message: '[TODO：中藥材 D+16 話術待補] 想請您試看看樣品，看有沒有喜歡的品項～',
   },
