@@ -21,10 +21,10 @@ async function listActiveAutoReplyFaqs() {
   return r.rows;
 }
 
-async function createFaq({ category, question, answer, keywords, isActive, autoReply }) {
+async function createFaq({ category, question, answer, keywords, isActive, autoReply, internalNote }) {
   const r = await db.query(
-    `INSERT INTO faqs (category, question, answer, keywords, is_active, auto_reply)
-     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    `INSERT INTO faqs (category, question, answer, keywords, is_active, auto_reply, internal_note)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
     [
       category || null,
       question,
@@ -32,17 +32,18 @@ async function createFaq({ category, question, answer, keywords, isActive, autoR
       keywords || '',
       isActive !== false,
       !!autoReply,
+      internalNote || null,
     ]
   );
   return r.rows[0];
 }
 
-async function updateFaq(id, { category, question, answer, keywords, isActive, autoReply }) {
+async function updateFaq(id, { category, question, answer, keywords, isActive, autoReply, internalNote }) {
   const r = await db.query(
     `UPDATE faqs SET
        category=$1, question=$2, answer=$3, keywords=$4,
-       is_active=$5, auto_reply=$6, updated_at=now()
-     WHERE id=$7 RETURNING *`,
+       is_active=$5, auto_reply=$6, internal_note=$7, updated_at=now()
+     WHERE id=$8 RETURNING *`,
     [
       category || null,
       question,
@@ -50,6 +51,7 @@ async function updateFaq(id, { category, question, answer, keywords, isActive, a
       keywords || '',
       isActive !== false,
       !!autoReply,
+      internalNote || null,
       id,
     ]
   );

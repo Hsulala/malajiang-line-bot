@@ -19,12 +19,16 @@
   var toastEl = document.getElementById('toast');
   var ordersListEl = document.getElementById('ordersList');
   var faqListEl = document.getElementById('faqList');
+  var historicalListEl = document.getElementById('historicalList');
+  var historicalMetaEl = document.getElementById('historicalMeta');
+  var historicalPagerEl = document.getElementById('historicalPager');
 
   var ORDER_STATUS_LABEL = { pending: '待處理', confirmed: '已確認', ignored: '已忽略' };
 
   var customers = [];
   var orders = [];
   var faqs = [];
+  var historicalState = { q: '', page: 1, pageSize: 50, total: 0 };
 
   function showToast(msg) {
     toastEl.textContent = msg;
@@ -369,6 +373,7 @@
             '<div>' + autoPill + ' ' + activePill + '</div>' +
           '</div>' +
           '<div class="list-row-body">' + escapeHtml(f.answer) + '</div>' +
+          (f.internal_note ? '<div class="list-row-body" style="color:var(--warning);font-size:12px;">⚠️ 內部備註：' + escapeHtml(f.internal_note) + '</div>' : '') +
           '<div class="list-row-actions">' +
             '<button class="btn ghost small" data-faq-edit="' + f.id + '">編輯</button>' +
           '</div>' +
@@ -391,7 +396,7 @@
 
   function openFaqDrawer(faq) {
     var isEdit = !!faq;
-    faq = faq || { category: '', question: '', answer: '', keywords: '', is_active: true, auto_reply: false };
+    faq = faq || { category: '', question: '', answer: '', keywords: '', is_active: true, auto_reply: false, internal_note: '' };
     drawer.innerHTML =
       '<div class="drawer-head">' +
         '<div><p class="drawer-store">' + (isEdit ? '編輯問答' : '新增問答') + '</p></div>' +
@@ -402,10 +407,12 @@
         '<input type="text" id="faqCategory" value="' + escapeHtml(faq.category || '') + '">' +
         '<label>問題</label>' +
         '<input type="text" id="faqQuestion" value="' + escapeHtml(faq.question || '') + '">' +
-        '<label>答案</label>' +
+        '<label>答案（客戶會看到這段內容）</label>' +
         '<textarea id="faqAnswer">' + escapeHtml(faq.answer || '') + '</textarea>' +
         '<label>觸發關鍵字（逗號分隔，例如：保存期限,可以放多久）</label>' +
         '<input type="text" id="faqKeywords" value="' + escapeHtml(faq.keywords || '') + '">' +
+        '<label>內部備註（只有老闆自己看得到，不會傳給客戶——例如提醒自己這題答案還沒完全確定）</label>' +
+        '<textarea id="faqInternalNote" placeholder="例如：常溫保存期限過往對話有2/3/4個月不同說法，需跟老闆確認最新標準">' + escapeHtml(faq.internal_note || '') + '</textarea>' +
         '<div class="checkbox-row"><input type="checkbox" id="faqIsActive"' + (faq.is_active ? ' checked' : '') + '> <label style="margin:0;font-weight:400;color:var(--text)">啟用（顯示在知識庫列表中）</label></div>' +
         '<div class="checkbox-row"><input type="checkbox" id="faqAutoReply"' + (faq.auto_reply ? ' checked' : '') + '> <label style="margin:0;font-weight:400;color:var(--text)">開啟自動回覆（客戶在 LINE 問到關鍵字時，機器人直接用這則答案回覆——答案不確定時請先不要打開）</label></div>' +
         '<div style="display:flex;gap:8px;margin-top:18px;">' +
@@ -422,6 +429,7 @@
         question: document.getElementById('faqQuestion').value.trim(),
         answer: document.getElementById('faqAnswer').value.trim(),
         keywords: document.getElementById('faqKeywords').value.trim(),
+        internalNote: document.getElementById('faqInternalNote').value.trim(),
         isActive: document.getElementById('faqIsActive').checked,
         autoReply: document.getElementById('faqAutoReply').checked,
       };
@@ -465,8 +473,77 @@
     }
   }
 
+  // ---- 歷史客戶紀錄 ----
+  var TAG_LABEL = { red: '紅標', purple: '紫標' };
+
+  function renderHistorical(data) {
+    var rows = data.rows;
+    historicalState.total = data.total;
+    historicalState.page = data.page;
+    historicalState.pageSize = data.pageSize;
+
+    historicalMetaEl.textContent = '共 ' + data.total + ' 筆（有對話內容的歷史聯絡人；純加好友沒有互動的不列入）';
+
+    if (!rows.length) {
+      historicalListEl.innerHTML = '<div class="empty">沒有符合的資料</div>';
+      historicalPagerEl.innerHTML = '';
+      return;
+    }
+
+    historicalListEl.innerHTML = rows.map(function (r) {
+      var tagHtml = r.tag ? '<span class="tag-dot ' + r.tag + '"></span>' + (TAG_LABEL[r.tag] || '') + '　' : '';
+      var orderPill = r.likely_ordered ? '<span class="pill ok">疑似曾下單</span>' : '';
+      var title = r.store_name || r.display_name || '(未命名)';
+      var metaParts = [];
+      if (r.contact_name) metaParts.push(r.contact_name);
+      if (r.phone) metaParts.push(r.phone);
+      if (r.product_interest) metaParts.push(r.product_interest);
+      return (
+        '<div class="list-row">' +
+          '<div class="list-row-head">' +
+            '<div><div class="list-row-title">' + tagHtml + escapeHtml(title) + '</div>' +
+              '<div class="list-row-meta">' + escapeHtml(metaParts.join('　')) + '</div>' +
+              (r.address ? '<div class="list-row-meta">' + escapeHtml(r.address) + '</div>' : '') +
+              '<div class="list-row-meta">最後互動：' + escapeHtml(r.last_contact_at || '未知') + '　共 ' + r.message_count + ' 則訊息　來源檔案：' + escapeHtml(r.source_file || '') + '</div></div>' +
+            '<div>' + orderPill + '</div>' +
+          '</div>' +
+          (r.summary ? '<div class="list-row-body">' + escapeHtml(r.summary) + '</div>' : '') +
+        '</div>'
+      );
+    }).join('');
+
+    var totalPages = Math.max(Math.ceil(data.total / data.pageSize), 1);
+    historicalPagerEl.innerHTML =
+      '<button class="btn ghost small" id="histPrevBtn"' + (data.page <= 1 ? ' disabled' : '') + '>上一頁</button>' +
+      '<span>第 ' + data.page + ' / ' + totalPages + ' 頁</span>' +
+      '<button class="btn ghost small" id="histNextBtn"' + (data.page >= totalPages ? ' disabled' : '') + '>下一頁</button>';
+    var prevBtn = document.getElementById('histPrevBtn');
+    var nextBtn = document.getElementById('histNextBtn');
+    if (prevBtn) prevBtn.addEventListener('click', function () { loadHistorical(historicalState.page - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { loadHistorical(historicalState.page + 1); });
+  }
+
+  async function loadHistorical(page) {
+    historicalState.page = page || 1;
+    var params = new URLSearchParams({
+      q: historicalState.q,
+      page: String(historicalState.page),
+      pageSize: String(historicalState.pageSize),
+    });
+    var data = await api('/api/admin/historical-customers?' + params.toString());
+    renderHistorical(data);
+  }
+
+  document.getElementById('historicalSearchBtn').addEventListener('click', function () {
+    historicalState.q = document.getElementById('historicalSearch').value.trim();
+    loadHistorical(1).catch(function (e) { showToast('搜尋失敗：' + e.message); });
+  });
+  document.getElementById('historicalSearch').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('historicalSearchBtn').click();
+  });
+
   // ---- 分頁切換 ----
-  var loadedViews = { board: true, orders: false, faq: false };
+  var loadedViews = { board: true, orders: false, faq: false, historical: false };
   function switchView(view) {
     Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {
       btn.classList.toggle('active', btn.getAttribute('data-view') === view);
@@ -479,6 +556,7 @@
       loadedViews[view] = true;
       if (view === 'orders') loadOrders().catch(function (e) { showToast('讀取訂單記錄失敗：' + e.message); });
       if (view === 'faq') loadFaqs().catch(function (e) { showToast('讀取知識庫失敗：' + e.message); });
+      if (view === 'historical') loadHistorical(1).catch(function (e) { showToast('讀取歷史客戶紀錄失敗：' + e.message); });
     }
   }
   Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {

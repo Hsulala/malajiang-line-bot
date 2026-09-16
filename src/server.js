@@ -12,8 +12,10 @@ const app = express();
 app.use(cookieParser());
 
 // 全域 JSON 解析，並保留原始 body（req.rawBody）供 /webhook 驗證簽章使用
+// limit 調高到 20mb，是因為後台「歷史客戶紀錄」批次匯入一次會帶比較多筆資料
 app.use(
   express.json({
+    limit: '20mb',
     verify: (req, res, buf) => {
       req.rawBody = buf;
     },

@@ -83,3 +83,30 @@ CREATE TABLE IF NOT EXISTS faqs (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_faqs_active ON faqs(is_active);
+
+-- internal_note：老闆自己看的內部備註，永遠不會傳給客戶（就算 auto_reply 開啟也不會用到這欄）。
+-- 用來標記像「答案不確定，需跟老闆核對」這類提醒，跟客戶會看到的 answer 分開存放。
+ALTER TABLE faqs ADD COLUMN IF NOT EXISTS internal_note TEXT;
+
+-- 歷史客戶紀錄：從工廠過往 LINE 官方帳號對話紀錄匯入的舊客戶資料，僅供後台查閱/搜尋參考，
+-- 完全獨立於正式的 customers 看板（沒有 line_user_id，無法主動推播訊息），
+-- 這樣匯入舊資料不會影響、也不會混進現有的客戶開發流程。
+CREATE TABLE IF NOT EXISTS historical_customers (
+  id                SERIAL PRIMARY KEY,
+  display_name      VARCHAR(255),
+  store_name        VARCHAR(255),
+  contact_name      VARCHAR(255),
+  phone             VARCHAR(50),
+  address           TEXT,
+  product_interest  VARCHAR(255),
+  tag               VARCHAR(20),   -- 'red' | 'purple' | null，對應原本 LINE OA 官方帳號自己標記的客戶標籤
+  likely_ordered    BOOLEAN NOT NULL DEFAULT false,
+  message_count     INTEGER NOT NULL DEFAULT 0,
+  first_contact_at  VARCHAR(20),
+  last_contact_at   VARCHAR(20),
+  summary           TEXT,          -- 對話重點摘要（最後幾則客戶訊息）
+  source_file       VARCHAR(255),  -- 原始匯出檔名，方便追溯回原始對話紀錄
+  imported_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_historical_customers_name ON historical_customers(display_name);
+CREATE INDEX IF NOT EXISTS idx_historical_customers_phone ON historical_customers(phone);
