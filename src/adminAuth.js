@@ -4,8 +4,8 @@ const config = require('./config');
 const COOKIE_NAME = 'malajiang_admin';
 const EXPIRES_IN = '7d';
 
-function issueToken() {
-  return jwt.sign({ role: 'admin' }, config.admin.jwtSecret, { expiresIn: EXPIRES_IN });
+function issueToken(role) {
+  return jwt.sign({ role: role || 'admin' }, config.admin.jwtSecret, { expiresIn: EXPIRES_IN });
 }
 
 function setAuthCookie(res, token) {
@@ -21,16 +21,40 @@ function clearAuthCookie(res) {
   res.clearCookie(COOKIE_NAME);
 }
 
-/** Express middleware：保護 /api/admin/* 路由（登入/登出本身除外） */
-function requireAdmin(req, res, next) {
+function readToken(req) {
   const token = req.cookies && req.cookies[COOKIE_NAME];
-  if (!token) return res.status(401).json({ ok: false, error: '請先登入' });
+  if (!token) return null;
   try {
-    jwt.verify(token, config.admin.jwtSecret);
-    next();
+    return jwt.verify(token, config.admin.jwtSecret);
   } catch (err) {
-    return res.status(401).json({ ok: false, error: '登入已過期，請重新登入' });
+    return null;
   }
 }
 
-module.exports = { COOKIE_NAME, issueToken, setAuthCookie, clearAuthCookie, requireAdmin };
+/** Express middleware：保護 /api/admin/* 路由（登入/登出本身除外），任何角色（老闆/超級管理者）都可通過 */
+function requireAdmin(req, res, next) {
+  const payload = readToken(req);
+  if (!payload) return res.status(401).json({ ok: false, error: '請先登入' });
+  req.adminRole = payload.role || 'admin';
+  next();
+}
+
+/** Express middleware：只有超級管理者能通過，用來保護商品目錄／樣品模板的新增編輯路由 */
+function requireSuperAdmin(req, res, next) {
+  const payload = readToken(req);
+  if (!payload) return res.status(401).json({ ok: false, error: '請先登入' });
+  if (payload.role !== 'superadmin') {
+    return res.status(403).json({ ok: false, error: '這個功能只有超級管理者能操作' });
+  }
+  req.adminRole = 'superadmin';
+  next();
+}
+
+module.exports = {
+  COOKIE_NAME,
+  issueToken,
+  setAuthCookie,
+  clearAuthCookie,
+  requireAdmin,
+  requireSuperAdmin,
+};

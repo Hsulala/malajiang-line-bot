@@ -4,8 +4,15 @@ const line = require('./lineClient');
 const repo = require('./customerRepo');
 const orderRepo = require('./orderRepo');
 const faqRepo = require('./faqRepo');
+const templateRepo = require('./sampleTemplateRepo');
 const { isRepeatCustomer, isLikelyOrderMessage } = require('./orderDetector');
-const { WELCOME_MESSAGE, FALLBACK_MESSAGE, GENERIC_REPLY_ACK, PRODUCT_LINES, matchProductLine } = require('./productLines');
+const { WELCOME_MESSAGE, FALLBACK_MESSAGE, GENERIC_REPLY_ACK } = require('./productLines');
+
+/** 快速選單按鈕：依目前上架中的樣品模板動態產生，LINE 快速回覆最多顯示 13 顆，這裡保守抓前 11 顆 */
+async function buildTemplateQuickReplyLabels() {
+  const templates = await templateRepo.listActive();
+  return templates.slice(0, 11).map((t) => t.label);
+}
 
 const ORDER_MESSAGE_ACK =
   '收到您的訂購訊息囉！老闆確認後會盡快跟您聯繫確認明細與出貨時間～';
@@ -46,9 +53,8 @@ async function handleEvent(event) {
 
   if (event.type === 'follow') {
     await repo.ensureCustomerByLineUserId(userId, null);
-    await line.replyMessage(event.replyToken, [
-      line.textMessage(WELCOME_MESSAGE, ['麻辣醬', '中藥材']),
-    ]);
+    const labels = await buildTemplateQuickReplyLabels();
+    await line.replyMessage(event.replyToken, [line.textMessage(WELCOME_MESSAGE, labels)]);
     return;
   }
 
@@ -79,13 +85,13 @@ async function handleEvent(event) {
       return;
     }
 
-    const productLine = matchProductLine(text);
+    const template = await templateRepo.matchTemplate(text);
 
-    if (productLine) {
-      await repo.setInterestLine(customer.id, productLine.key, productLine.label);
-      const liffUrl = buildLiffUrl(productLine.key);
+    if (template) {
+      await repo.setInterestLine(customer.id, template.key, template.label);
+      const liffUrl = buildLiffUrl(template.key);
       await line.replyMessage(event.replyToken, [
-        line.textMessage(productLine.introMessage),
+        line.textMessage(template.intro_message),
         line.liffLinkMessage(
           '請點此填寫收件資料與想試的品項',
           '▸ 開啟樣品申請表單',
@@ -125,8 +131,9 @@ async function handleEvent(event) {
     }
 
     // 其他情況：不認識的輸入，導回主選單
+    const fallbackLabels = await buildTemplateQuickReplyLabels();
     await line.replyMessage(event.replyToken, [
-      line.textMessage(FALLBACK_MESSAGE, ['麻辣醬', '中藥材']),
+      line.textMessage(FALLBACK_MESSAGE, fallbackLabels),
     ]);
     return;
   }

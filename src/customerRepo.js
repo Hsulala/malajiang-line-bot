@@ -44,8 +44,10 @@ async function getById(id) {
 async function setInterestLine(customerId, interestKey, label) {
   const c = await getById(customerId);
   let next = interestKey;
-  if (c && c.interest_line && c.interest_line !== interestKey) {
-    next = 'both';
+  if (c && c.interest_line && c.interest_line !== interestKey && c.interest_line !== 'multiple') {
+    next = 'multiple';
+  } else if (c && c.interest_line === 'multiple') {
+    next = 'multiple';
   }
   await db.query('UPDATE customers SET interest_line=$1, updated_at=now() WHERE id=$2', [
     next,
@@ -54,7 +56,10 @@ async function setInterestLine(customerId, interestKey, label) {
   await addTimelineEvent(customerId, `客戶選擇「${label}」，機器人送出樣品清單`);
 }
 
-/** LIFF 表單送出：寫入店家資料、選擇的樣品，並把 stage 推進到 confirm（待老闆確認） */
+/**
+ * LIFF 表單送出：寫入店家資料、客戶勾選的樣品，並把 stage 推進到 confirm（待老闆確認）
+ * samples: [{ catalogItemId, name }]，數量上限（目前 7 樣）在 liffRoutes 那層驗證
+ */
 async function submitLiffForm(customerId, { storeName, contactName, phone, address, samples }) {
   await db.query(
     `UPDATE customers
@@ -62,14 +67,45 @@ async function submitLiffForm(customerId, { storeName, contactName, phone, addre
      WHERE id=$5`,
     [storeName, contactName, phone, address, customerId]
   );
-  await db.query('DELETE FROM customer_samples WHERE customer_id=$1', [customerId]);
+  await db.query("DELETE FROM customer_samples WHERE customer_id=$1 AND added_by='customer'", [
+    customerId,
+  ]);
   for (const s of samples || []) {
-    await db.query('INSERT INTO customer_samples (customer_id, sample_name) VALUES ($1,$2)', [
-      customerId,
-      s,
-    ]);
+    await db.query(
+      `INSERT INTO customer_samples (customer_id, sample_name, catalog_item_id, added_by)
+       VALUES ($1,$2,$3,'customer')`,
+      [customerId, s.name, s.catalogItemId || null]
+    );
   }
   await addTimelineEvent(customerId, '客戶完成 LIFF 表單填寫，已通知老闆確認訂單');
+}
+
+/**
+ * 老闆在後台「加碼」：從完整商品目錄勾選額外要送的品項，跟客戶自己選的分開標記，
+ * 不會覆蓋客戶原本選的內容。
+ */
+async function addExtraSamples(customerId, items) {
+  for (const s of items || []) {
+    await db.query(
+      `INSERT INTO customer_samples (customer_id, sample_name, catalog_item_id, added_by)
+       VALUES ($1,$2,$3,'owner')`,
+      [customerId, s.name, s.catalogItemId || null]
+    );
+  }
+  if (items && items.length) {
+    await addTimelineEvent(
+      customerId,
+      `老闆加碼樣品：${items.map((s) => s.name).join('、')}`
+    );
+  }
+}
+
+/** 移除一筆樣品紀錄（客戶選的或老闆加碼的都可以移除，用於後台調整最終出貨品項） */
+async function removeSample(customerId, sampleId) {
+  await db.query('DELETE FROM customer_samples WHERE id=$1 AND customer_id=$2', [
+    sampleId,
+    customerId,
+  ]);
 }
 
 /** 老闆在後台確認訂單：設定出貨日，建立 D+2 / D+16 追蹤排程 */
@@ -115,13 +151,16 @@ async function getCustomerDetail(id) {
   const c = await getById(id);
   if (!c) return null;
   const [samples, timeline, followups] = await Promise.all([
-    db.query('SELECT sample_name FROM customer_samples WHERE customer_id=$1 ORDER BY id', [id]),
+    db.query(
+      'SELECT id, sample_name, catalog_item_id, added_by FROM customer_samples WHERE customer_id=$1 ORDER BY id',
+      [id]
+    ),
     db.query('SELECT * FROM timeline_events WHERE customer_id=$1 ORDER BY created_at ASC', [id]),
     db.query('SELECT * FROM followups WHERE customer_id=$1 ORDER BY scheduled_date ASC', [id]),
   ]);
   return {
     ...c,
-    samples: samples.rows.map((r) => r.sample_name),
+    samples: samples.rows,
     timeline: timeline.rows,
     followups: followups.rows,
   };
@@ -189,6 +228,8 @@ module.exports = {
   getById,
   setInterestLine,
   submitLiffForm,
+  addExtraSamples,
+  removeSample,
   confirmOrder,
   listCustomers,
   listCustomersWithSummary,

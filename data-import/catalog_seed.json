@@ -1,0 +1,1306 @@
+[
+  {
+    "category": "濃縮高湯｜素食",
+    "name": "香菇高湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 0
+  },
+  {
+    "category": "濃縮高湯｜素食",
+    "name": "麻油香菇高湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 1
+  },
+  {
+    "category": "濃縮高湯｜素食",
+    "name": "蔬菜高湯",
+    "spec": "3kg裝",
+    "unitPrice": 320,
+    "priceUnit": "/kg",
+    "sortOrder": 2
+  },
+  {
+    "category": "濃縮高湯｜素食",
+    "name": "柚香鹽味高湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 3
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "牛骨清湯(無味精)",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 4
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "雞骨清湯(無味精)",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 5
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "鮮煲雞汁(無味精)",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 6
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "柴魚高湯(無味精)",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 7
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "紅燒牛肉麵原汁",
+    "spec": "3kg裝",
+    "unitPrice": 340,
+    "priceUnit": "/kg",
+    "sortOrder": 8
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "牛骨白湯",
+    "spec": "3kg裝",
+    "unitPrice": 310,
+    "priceUnit": "/kg",
+    "sortOrder": 9
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "豬肉清湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 10
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "藥膳高湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 11
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "豬骨白湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 12
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "豬骨濃湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 13
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "雞骨白湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 14
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "人參雞湯",
+    "spec": "3kg裝",
+    "unitPrice": 400,
+    "priceUnit": "/kg",
+    "sortOrder": 15
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "青花椒油(高湯用)",
+    "spec": "3kg裝",
+    "unitPrice": 400,
+    "priceUnit": "/kg",
+    "sortOrder": 16
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "羊肉高湯",
+    "spec": "3kg裝",
+    "unitPrice": 310,
+    "priceUnit": "/kg",
+    "sortOrder": 17
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "和風高湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 18
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "蛤蜊海鮮高湯",
+    "spec": "3kg裝",
+    "unitPrice": 310,
+    "priceUnit": "/kg",
+    "sortOrder": 19
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "壽喜燒",
+    "spec": "3kg裝",
+    "unitPrice": 280,
+    "priceUnit": "/kg",
+    "sortOrder": 20
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "泡菜高湯",
+    "spec": "3kg裝",
+    "unitPrice": 310,
+    "priceUnit": "/kg",
+    "sortOrder": 21
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "石頭鍋高湯",
+    "spec": "3kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/kg",
+    "sortOrder": 22
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "番茄高湯",
+    "spec": "3kg裝",
+    "unitPrice": 320,
+    "priceUnit": "/kg",
+    "sortOrder": 23
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "鮮蝦高湯",
+    "spec": "3kg裝",
+    "unitPrice": 420,
+    "priceUnit": "/kg",
+    "sortOrder": 24
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "鮮魚高湯",
+    "spec": "3kg裝",
+    "unitPrice": 330,
+    "priceUnit": "/kg",
+    "sortOrder": 25
+  },
+  {
+    "category": "濃縮高湯｜葷食",
+    "name": "干貝高湯",
+    "spec": "3kg裝",
+    "unitPrice": 350,
+    "priceUnit": "/kg",
+    "sortOrder": 26
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "香菇精",
+    "spec": "1kg裝",
+    "unitPrice": 260,
+    "priceUnit": "/包",
+    "sortOrder": 27
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "素食湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 260,
+    "priceUnit": "/包",
+    "sortOrder": 28
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "蔬菜湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 260,
+    "priceUnit": "/包",
+    "sortOrder": 29
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "昆布調味粉",
+    "spec": "1kg裝",
+    "unitPrice": 260,
+    "priceUnit": "/包",
+    "sortOrder": 30
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "蔬食藥膳高湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 380,
+    "priceUnit": "/包",
+    "sortOrder": 31
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "海苔調味粉",
+    "spec": "1kg裝",
+    "unitPrice": 260,
+    "priceUnit": "/包",
+    "sortOrder": 32
+  },
+  {
+    "category": "湯粉｜素食",
+    "name": "蔬菜調味粉IGN",
+    "spec": "1kg裝",
+    "unitPrice": 390,
+    "priceUnit": "/包",
+    "sortOrder": 33
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "牛肉湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 250,
+    "priceUnit": "/包",
+    "sortOrder": 34
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "大骨粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 35
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "肉骨粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 36
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "豚骨粉",
+    "spec": "1kg裝",
+    "unitPrice": 390,
+    "priceUnit": "/包",
+    "sortOrder": 37
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "雞粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 38
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "雞晶粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 39
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "柴魚湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 40
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "海鮮湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 250,
+    "priceUnit": "/包",
+    "sortOrder": 41
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "臭臭鍋湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 250,
+    "priceUnit": "/包",
+    "sortOrder": 42
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "蒙古養生湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/包",
+    "sortOrder": 43
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "藥膳湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 340,
+    "priceUnit": "/包",
+    "sortOrder": 44
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "鍋燒大骨湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 45
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "鍋燒柴魚湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 230,
+    "priceUnit": "/包",
+    "sortOrder": 46
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "涮涮鍋專用湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 280,
+    "priceUnit": "/包",
+    "sortOrder": 47
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "麻辣鴨血粉",
+    "spec": "1kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/包",
+    "sortOrder": 48
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "牛奶鍋湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 300,
+    "priceUnit": "/包",
+    "sortOrder": 49
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "新加坡肉骨茶湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 280,
+    "priceUnit": "/包",
+    "sortOrder": 50
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "酸菜魚湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 350,
+    "priceUnit": "/包",
+    "sortOrder": 51
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "酸白鍋湯粉",
+    "spec": "1kg裝",
+    "unitPrice": 260,
+    "priceUnit": "/包",
+    "sortOrder": 52
+  },
+  {
+    "category": "湯粉｜葷食",
+    "name": "蛤蜊粉",
+    "spec": "1kg裝",
+    "unitPrice": 280,
+    "priceUnit": "/包",
+    "sortOrder": 53
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "麻辣醬(顆粒)",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 54
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "麻辣醬(粉)",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 55
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "蒙古麻辣醬(顆粒)",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 56
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "蒙古麻辣醬(粉)",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 57
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "川味麻辣醬",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 58
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "香馥麻辣醬",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 59
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "台版牛油麻辣醬",
+    "spec": "1斤",
+    "unitPrice": 220,
+    "priceUnit": "",
+    "sortOrder": 60
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "重慶牛油麻辣醬",
+    "spec": "1包(150g)",
+    "unitPrice": 70,
+    "priceUnit": "",
+    "sortOrder": 61
+  },
+  {
+    "category": "麻辣醬系列",
+    "name": "素麻辣醬",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 62
+  },
+  {
+    "category": "乾拌醬系列",
+    "name": "麻辣乾拌醬",
+    "spec": "1斤",
+    "unitPrice": 220,
+    "priceUnit": "",
+    "sortOrder": 63
+  },
+  {
+    "category": "乾拌醬系列",
+    "name": "蒜味乾拌醬",
+    "spec": "1斤",
+    "unitPrice": 220,
+    "priceUnit": "",
+    "sortOrder": 64
+  },
+  {
+    "category": "乾拌醬系列",
+    "name": "油潑辣子",
+    "spec": "1斤",
+    "unitPrice": 160,
+    "priceUnit": "",
+    "sortOrder": 65
+  },
+  {
+    "category": "乾拌醬系列",
+    "name": "辣渣",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 66
+  },
+  {
+    "category": "乾拌醬系列",
+    "name": "椒麻醬",
+    "spec": "1斤",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 67
+  },
+  {
+    "category": "辣度加強系列",
+    "name": "辣油",
+    "spec": "1桶(4斤裝)",
+    "unitPrice": 280,
+    "priceUnit": "",
+    "sortOrder": 68
+  },
+  {
+    "category": "辣度加強系列",
+    "name": "麻辣川油",
+    "spec": "1包(300g)",
+    "unitPrice": 150,
+    "priceUnit": "",
+    "sortOrder": 69
+  },
+  {
+    "category": "辣度加強系列",
+    "name": "特辣醬",
+    "spec": "1包(1斤裝)",
+    "unitPrice": 190,
+    "priceUnit": "",
+    "sortOrder": 70
+  },
+  {
+    "category": "辣度加強系列",
+    "name": "鬼椒醬",
+    "spec": "1包(1斤裝)",
+    "unitPrice": 450,
+    "priceUnit": "",
+    "sortOrder": 71
+  },
+  {
+    "category": "特色醬料系列",
+    "name": "咖哩醬",
+    "spec": "1斤",
+    "unitPrice": 180,
+    "priceUnit": "",
+    "sortOrder": 72
+  },
+  {
+    "category": "特色醬料系列",
+    "name": "泰式酸辣醬",
+    "spec": "1斤",
+    "unitPrice": 180,
+    "priceUnit": "",
+    "sortOrder": 73
+  },
+  {
+    "category": "特色醬料系列",
+    "name": "酸白菜湯底(有酸白菜)",
+    "spec": "1斤",
+    "unitPrice": 140,
+    "priceUnit": "",
+    "sortOrder": 74
+  },
+  {
+    "category": "特色醬料系列",
+    "name": "黑蒜養生包(有黑蒜)",
+    "spec": "1包",
+    "unitPrice": 140,
+    "priceUnit": "",
+    "sortOrder": 75
+  },
+  {
+    "category": "特色醬料系列",
+    "name": "砂鍋魚頭醬(有扁魚)",
+    "spec": "1kg裝",
+    "unitPrice": 300,
+    "priceUnit": "",
+    "sortOrder": 76
+  },
+  {
+    "category": "特色醬料系列",
+    "name": "胡椒豬肚醬",
+    "spec": "3kg裝",
+    "unitPrice": 350,
+    "priceUnit": "",
+    "sortOrder": 77
+  },
+  {
+    "category": "辣椒系列",
+    "name": "朝天辣椒乾",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 78
+  },
+  {
+    "category": "辣椒系列",
+    "name": "朝天辣椒細粉",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 79
+  },
+  {
+    "category": "辣椒系列",
+    "name": "朝天辣椒粗粉",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 80
+  },
+  {
+    "category": "辣椒系列",
+    "name": "朝天辣椒粗片",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 81
+  },
+  {
+    "category": "辣椒系列",
+    "name": "三英椒",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 82
+  },
+  {
+    "category": "辣椒系列",
+    "name": "二荊條粒/粗粉(宮保)",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 83
+  },
+  {
+    "category": "辣椒系列",
+    "name": "燈籠椒粒/粗粉",
+    "spec": "斤",
+    "unitPrice": 300,
+    "priceUnit": "/斤",
+    "sortOrder": 84
+  },
+  {
+    "category": "辣椒系列",
+    "name": "雞心椒(粒/粗粉/粉)",
+    "spec": "斤",
+    "unitPrice": 250,
+    "priceUnit": "/斤",
+    "sortOrder": 85
+  },
+  {
+    "category": "辣椒系列",
+    "name": "子彈椒(粒/粗粉/粉)",
+    "spec": "斤",
+    "unitPrice": 250,
+    "priceUnit": "/斤",
+    "sortOrder": 86
+  },
+  {
+    "category": "辣椒系列",
+    "name": "特辣雞心粉(鬼椒辣度)",
+    "spec": "斤",
+    "unitPrice": 250,
+    "priceUnit": "/斤",
+    "sortOrder": 87
+  },
+  {
+    "category": "辣椒系列",
+    "name": "韓國辣椒粉",
+    "spec": "斤",
+    "unitPrice": 300,
+    "priceUnit": "/斤",
+    "sortOrder": 88
+  },
+  {
+    "category": "辣椒系列",
+    "name": "麻辣紅油",
+    "spec": "4斤裝",
+    "unitPrice": 450,
+    "priceUnit": "/斤",
+    "sortOrder": 89
+  },
+  {
+    "category": "辣椒系列",
+    "name": "冷凍青花椒粒",
+    "spec": "350g",
+    "unitPrice": 420,
+    "priceUnit": "/斤",
+    "sortOrder": 90
+  },
+  {
+    "category": "花椒系列",
+    "name": "青花椒粒/青花椒粉",
+    "spec": "斤",
+    "unitPrice": 520,
+    "priceUnit": "/斤",
+    "sortOrder": 91
+  },
+  {
+    "category": "花椒系列",
+    "name": "大紅袍花椒粒/花椒粉",
+    "spec": "斤",
+    "unitPrice": 520,
+    "priceUnit": "/斤",
+    "sortOrder": 92
+  },
+  {
+    "category": "花椒油．調味油系列",
+    "name": "大紅袍花椒油",
+    "spec": "4斤裝",
+    "unitPrice": 450,
+    "priceUnit": "",
+    "sortOrder": 93
+  },
+  {
+    "category": "花椒油．調味油系列",
+    "name": "青花椒油",
+    "spec": "3kg",
+    "unitPrice": 1200,
+    "priceUnit": "",
+    "sortOrder": 94
+  },
+  {
+    "category": "花椒油．調味油系列",
+    "name": "藤椒油",
+    "spec": "1.8kg",
+    "unitPrice": 900,
+    "priceUnit": "",
+    "sortOrder": 95
+  },
+  {
+    "category": "花椒油．調味油系列",
+    "name": "香麻油",
+    "spec": "4斤裝",
+    "unitPrice": 260,
+    "priceUnit": "",
+    "sortOrder": 96
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "紅油郫縣豆瓣醬",
+    "spec": "2.5kg裝",
+    "unitPrice": 150,
+    "priceUnit": "",
+    "sortOrder": 97
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "郫縣豆瓣醬",
+    "spec": "kg",
+    "unitPrice": 150,
+    "priceUnit": "",
+    "sortOrder": 98
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "辣豆瓣醬(粗)",
+    "spec": "30斤",
+    "unitPrice": 1100,
+    "priceUnit": "",
+    "sortOrder": 99
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "辣豆瓣醬(細)",
+    "spec": "30斤",
+    "unitPrice": 1100,
+    "priceUnit": "",
+    "sortOrder": 100
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "辣豆瓣醬(丹)",
+    "spec": "30斤",
+    "unitPrice": 1100,
+    "priceUnit": "",
+    "sortOrder": 101
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "黑豆瓣醬",
+    "spec": "30斤",
+    "unitPrice": 1100,
+    "priceUnit": "",
+    "sortOrder": 102
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "特級辣豆瓣醬",
+    "spec": "30斤",
+    "unitPrice": 1300,
+    "priceUnit": "",
+    "sortOrder": 103
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "乾碟粉(清香麻辣粉)",
+    "spec": "斤",
+    "unitPrice": 270,
+    "priceUnit": "",
+    "sortOrder": 104
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "酒釀",
+    "spec": "10斤",
+    "unitPrice": 500,
+    "priceUnit": "",
+    "sortOrder": 105
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "黑豆豉",
+    "spec": "斤",
+    "unitPrice": 50,
+    "priceUnit": "",
+    "sortOrder": 106
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "泡椒(燈籠椒)",
+    "spec": "1.4kg",
+    "unitPrice": 520,
+    "priceUnit": "",
+    "sortOrder": 107
+  },
+  {
+    "category": "豆瓣醬．麻辣原料系列",
+    "name": "泡椒(小米椒)",
+    "spec": "5kg",
+    "unitPrice": 900,
+    "priceUnit": "",
+    "sortOrder": 108
+  },
+  {
+    "category": "辛香料系列",
+    "name": "八角粒/八角粉(大茴)",
+    "spec": "斤",
+    "unitPrice": 320,
+    "priceUnit": "/斤",
+    "sortOrder": 109
+  },
+  {
+    "category": "辛香料系列",
+    "name": "草果粒/草果粉",
+    "spec": "斤",
+    "unitPrice": 400,
+    "priceUnit": "/斤",
+    "sortOrder": 110
+  },
+  {
+    "category": "辛香料系列",
+    "name": "丁香粒/丁香粉",
+    "spec": "斤",
+    "unitPrice": 350,
+    "priceUnit": "/斤",
+    "sortOrder": 111
+  },
+  {
+    "category": "辛香料系列",
+    "name": "肉桂角/肉桂粉",
+    "spec": "斤",
+    "unitPrice": 215,
+    "priceUnit": "/斤",
+    "sortOrder": 112
+  },
+  {
+    "category": "辛香料系列",
+    "name": "甘草片/甘草粉",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 113
+  },
+  {
+    "category": "辛香料系列",
+    "name": "黑胡椒粒/中粗/粉",
+    "spec": "斤",
+    "unitPrice": 350,
+    "priceUnit": "/斤",
+    "sortOrder": 114
+  },
+  {
+    "category": "辛香料系列",
+    "name": "白胡椒粒/粉(海南)",
+    "spec": "斤",
+    "unitPrice": 350,
+    "priceUnit": "/斤",
+    "sortOrder": 115
+  },
+  {
+    "category": "辛香料系列",
+    "name": "孜然粉/粒",
+    "spec": "斤",
+    "unitPrice": 350,
+    "priceUnit": "/斤",
+    "sortOrder": 116
+  },
+  {
+    "category": "辛香料系列",
+    "name": "月桂葉(香葉)",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 117
+  },
+  {
+    "category": "辛香料系列",
+    "name": "五香粉",
+    "spec": "斤",
+    "unitPrice": 250,
+    "priceUnit": "/斤",
+    "sortOrder": 118
+  },
+  {
+    "category": "辛香料系列",
+    "name": "十三香",
+    "spec": "45克",
+    "unitPrice": 70,
+    "priceUnit": "/斤",
+    "sortOrder": 119
+  },
+  {
+    "category": "辛香料系列",
+    "name": "小茴香",
+    "spec": "斤",
+    "unitPrice": 150,
+    "priceUnit": "/斤",
+    "sortOrder": 120
+  },
+  {
+    "category": "中藥材系列",
+    "name": "當歸尾片",
+    "spec": "斤",
+    "unitPrice": 500,
+    "priceUnit": "/斤",
+    "sortOrder": 121
+  },
+  {
+    "category": "中藥材系列",
+    "name": "川芎",
+    "spec": "斤",
+    "unitPrice": 200,
+    "priceUnit": "/斤",
+    "sortOrder": 122
+  },
+  {
+    "category": "中藥材系列",
+    "name": "薏仁",
+    "spec": "斤",
+    "unitPrice": 165,
+    "priceUnit": "/斤",
+    "sortOrder": 123
+  },
+  {
+    "category": "中藥材系列",
+    "name": "蓮子",
+    "spec": "斤",
+    "unitPrice": 250,
+    "priceUnit": "/斤",
+    "sortOrder": 124
+  },
+  {
+    "category": "中藥材系列",
+    "name": "枸杞(大)",
+    "spec": "斤",
+    "unitPrice": 330,
+    "priceUnit": "/斤",
+    "sortOrder": 125
+  },
+  {
+    "category": "中藥材系列",
+    "name": "枸杞(小)",
+    "spec": "斤",
+    "unitPrice": 245,
+    "priceUnit": "/斤",
+    "sortOrder": 126
+  },
+  {
+    "category": "中藥材系列",
+    "name": "紅棗",
+    "spec": "斤",
+    "unitPrice": 155,
+    "priceUnit": "/斤",
+    "sortOrder": 127
+  },
+  {
+    "category": "中藥材系列",
+    "name": "三奈粉",
+    "spec": "斤",
+    "unitPrice": 340,
+    "priceUnit": "/斤",
+    "sortOrder": 128
+  },
+  {
+    "category": "中藥材系列",
+    "name": "尖砂仁",
+    "spec": "斤",
+    "unitPrice": 390,
+    "priceUnit": "/斤",
+    "sortOrder": 129
+  },
+  {
+    "category": "中藥材系列",
+    "name": "良薑片",
+    "spec": "斤",
+    "unitPrice": 300,
+    "priceUnit": "/斤",
+    "sortOrder": 130
+  },
+  {
+    "category": "中藥材系列",
+    "name": "草蔻蔻",
+    "spec": "斤",
+    "unitPrice": 320,
+    "priceUnit": "/斤",
+    "sortOrder": 131
+  },
+  {
+    "category": "中藥材系列",
+    "name": "蔘鬚",
+    "spec": "斤",
+    "unitPrice": 620,
+    "priceUnit": "/斤",
+    "sortOrder": 132
+  },
+  {
+    "category": "中藥材系列",
+    "name": "蓍片",
+    "spec": "斤",
+    "unitPrice": 330,
+    "priceUnit": "/斤",
+    "sortOrder": 133
+  },
+  {
+    "category": "中藥材系列",
+    "name": "帶殼龍眼乾(桂圓)",
+    "spec": "斤",
+    "unitPrice": 285,
+    "priceUnit": "/斤",
+    "sortOrder": 134
+  },
+  {
+    "category": "中藥材系列",
+    "name": "靈香草",
+    "spec": "斤",
+    "unitPrice": 450,
+    "priceUnit": "/斤",
+    "sortOrder": 135
+  },
+  {
+    "category": "中藥材系列",
+    "name": "香茅草",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 136
+  },
+  {
+    "category": "中藥材系列",
+    "name": "陳皮絲",
+    "spec": "斤",
+    "unitPrice": 220,
+    "priceUnit": "/斤",
+    "sortOrder": 137
+  },
+  {
+    "category": "中藥材系列",
+    "name": "熟地片",
+    "spec": "斤",
+    "unitPrice": 400,
+    "priceUnit": "/斤",
+    "sortOrder": 138
+  },
+  {
+    "category": "中藥材系列",
+    "name": "玉棗",
+    "spec": "斤",
+    "unitPrice": 340,
+    "priceUnit": "/斤",
+    "sortOrder": 139
+  },
+  {
+    "category": "中藥材系列",
+    "name": "白芷片",
+    "spec": "斤",
+    "unitPrice": 320,
+    "priceUnit": "/斤",
+    "sortOrder": 140
+  },
+  {
+    "category": "中藥材系列",
+    "name": "豆蔻",
+    "spec": "6斤裝",
+    "unitPrice": 650,
+    "priceUnit": "/斤",
+    "sortOrder": 141
+  },
+  {
+    "category": "肉精粉｜牛肉風味",
+    "name": "清燉牛肉012",
+    "spec": "1kg裝",
+    "unitPrice": 520,
+    "priceUnit": "",
+    "sortOrder": 142
+  },
+  {
+    "category": "肉精粉｜牛肉風味",
+    "name": "紅燒牛肉013",
+    "spec": "1kg裝",
+    "unitPrice": 380,
+    "priceUnit": "",
+    "sortOrder": 143
+  },
+  {
+    "category": "肉精粉｜豬肉風味",
+    "name": "清燉豬肉012",
+    "spec": "1kg裝",
+    "unitPrice": 490,
+    "priceUnit": "",
+    "sortOrder": 144
+  },
+  {
+    "category": "肉精粉｜豬肉風味",
+    "name": "傳統滷肉013",
+    "spec": "1kg裝",
+    "unitPrice": 380,
+    "priceUnit": "",
+    "sortOrder": 145
+  },
+  {
+    "category": "肉精粉｜豬肉風味",
+    "name": "日式白湯C30",
+    "spec": "1kg裝",
+    "unitPrice": 360,
+    "priceUnit": "",
+    "sortOrder": 146
+  },
+  {
+    "category": "肉精粉｜雞肉風味",
+    "name": "燒烤雞肉012",
+    "spec": "1kg裝",
+    "unitPrice": 460,
+    "priceUnit": "",
+    "sortOrder": 147
+  },
+  {
+    "category": "肉精粉｜雞肉風味",
+    "name": "清燉雞肉016",
+    "spec": "1kg裝",
+    "unitPrice": 500,
+    "priceUnit": "",
+    "sortOrder": 148
+  },
+  {
+    "category": "肉精粉｜羊肉風味",
+    "name": "羊肉風味012",
+    "spec": "1kg裝",
+    "unitPrice": 520,
+    "priceUnit": "",
+    "sortOrder": 149
+  },
+  {
+    "category": "肉精粉｜蝦子風味",
+    "name": "烤蝦風味015",
+    "spec": "1kg裝",
+    "unitPrice": 660,
+    "priceUnit": "",
+    "sortOrder": 150
+  },
+  {
+    "category": "肉精粉｜素食風味",
+    "name": "素肉風味A",
+    "spec": "1kg裝",
+    "unitPrice": 660,
+    "priceUnit": "",
+    "sortOrder": 151
+  },
+  {
+    "category": "肉精粉｜素食風味",
+    "name": "素雞肉風味C",
+    "spec": "1kg裝",
+    "unitPrice": 660,
+    "priceUnit": "",
+    "sortOrder": 152
+  },
+  {
+    "category": "肉精粉｜素食風味",
+    "name": "素燉肉風味",
+    "spec": "1kg裝",
+    "unitPrice": 530,
+    "priceUnit": "",
+    "sortOrder": 153
+  },
+  {
+    "category": "肉精粉｜素食風味",
+    "name": "香菇精粉",
+    "spec": "1kg裝",
+    "unitPrice": 970,
+    "priceUnit": "",
+    "sortOrder": 154
+  },
+  {
+    "category": "肉精膏系列",
+    "name": "牛肉精",
+    "spec": "1kg裝",
+    "unitPrice": 560,
+    "priceUnit": "",
+    "sortOrder": 155
+  },
+  {
+    "category": "肉精膏系列",
+    "name": "豬肉精",
+    "spec": "1kg裝",
+    "unitPrice": 960,
+    "priceUnit": "",
+    "sortOrder": 156
+  },
+  {
+    "category": "肉精膏系列",
+    "name": "雞肉精",
+    "spec": "1kg裝",
+    "unitPrice": 560,
+    "priceUnit": "",
+    "sortOrder": 157
+  },
+  {
+    "category": "肉精膏系列",
+    "name": "高鮮調味粉(風味加強)",
+    "spec": "1kg裝",
+    "unitPrice": 200,
+    "priceUnit": "",
+    "sortOrder": 158
+  },
+  {
+    "category": "肉精膏系列",
+    "name": "極味鮮(風味加強)",
+    "spec": "1kg裝",
+    "unitPrice": 330,
+    "priceUnit": "",
+    "sortOrder": 159
+  },
+  {
+    "category": "無添加物湯粉系列",
+    "name": "原味雞粉",
+    "spec": "1kg裝",
+    "unitPrice": 330,
+    "priceUnit": "",
+    "sortOrder": 160
+  },
+  {
+    "category": "無添加物湯粉系列",
+    "name": "鮮蔬調味粉",
+    "spec": "1kg裝",
+    "unitPrice": 420,
+    "priceUnit": "",
+    "sortOrder": 161
+  },
+  {
+    "category": "無添加物湯粉系列",
+    "name": "原味昆布粉",
+    "spec": "1kg裝",
+    "unitPrice": 440,
+    "priceUnit": "",
+    "sortOrder": 162
+  }
+]

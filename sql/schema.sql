@@ -110,3 +110,52 @@ CREATE TABLE IF NOT EXISTS historical_customers (
 );
 CREATE INDEX IF NOT EXISTS idx_historical_customers_name ON historical_customers(display_name);
 CREATE INDEX IF NOT EXISTS idx_historical_customers_phone ON historical_customers(phone);
+
+-- 商品目錄（母目錄）：工廠完整批發品項，價格/品名都在後台可編輯、不寫死在程式碼裡。
+-- 「超級管理者」才能新增/編輯/下架品項；一般管理者（老闆）只能瀏覽、拿來挑選要加碼給客人的品項。
+CREATE TABLE IF NOT EXISTS catalog_items (
+  id            SERIAL PRIMARY KEY,
+  category      VARCHAR(50) NOT NULL,
+  name          VARCHAR(255) NOT NULL,
+  spec          VARCHAR(100),             -- 規格，例如「3kg裝」「1斤」「1包(150g)」
+  unit_price    NUMERIC(10,2),
+  price_unit    VARCHAR(20) NOT NULL DEFAULT '', -- 例如 /kg、/斤，留空代表單價就是整包/整份的價格
+  is_active     BOOLEAN NOT NULL DEFAULT true,   -- 下架用，不做實體刪除，避免舊訂單/樣品紀錄的關聯斷掉
+  sort_order    INTEGER NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_catalog_items_category ON catalog_items(category, sort_order);
+
+-- 樣品模板：取代原本寫死在 productLines.js 裡的「麻辣醬／中藥材」兩條線，
+-- 改成依店家類型（火鍋店/鍋燒麵店/牛肉麵店...）各自一份話術 + 建議樣品清單，
+-- 一樣限「超級管理者」才能新增/編輯/下架，一般管理者（老闆）只能瀏覽。
+CREATE TABLE IF NOT EXISTS sample_templates (
+  id                SERIAL PRIMARY KEY,
+  key               VARCHAR(50) UNIQUE NOT NULL,  -- 系統內部代碼，例如 hotpot、beef_noodle
+  label             VARCHAR(50) NOT NULL,         -- 顯示名稱，例如「火鍋店」
+  trigger_keywords  TEXT NOT NULL DEFAULT '',     -- 逗號分隔，客戶輸入文字比對用（label 本身一定會比對到，不用重複填）
+  intro_message     TEXT NOT NULL DEFAULT '',
+  d2_message        TEXT NOT NULL DEFAULT '',
+  d16_message       TEXT NOT NULL DEFAULT '',
+  is_active         BOOLEAN NOT NULL DEFAULT true,
+  sort_order        INTEGER NOT NULL DEFAULT 0,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 每個樣品模板的候選品項（從商品目錄挑），客戶在 LIFF 表單裡最多勾選 7 樣。
+CREATE TABLE IF NOT EXISTS sample_template_items (
+  id                SERIAL PRIMARY KEY,
+  template_id       INTEGER NOT NULL REFERENCES sample_templates(id) ON DELETE CASCADE,
+  catalog_item_id   INTEGER NOT NULL REFERENCES catalog_items(id) ON DELETE CASCADE,
+  sort_order        INTEGER NOT NULL DEFAULT 0,
+  UNIQUE(template_id, catalog_item_id)
+);
+CREATE INDEX IF NOT EXISTS idx_template_items_template ON sample_template_items(template_id, sort_order);
+
+-- customer_samples 擴充：記錄這筆樣品是客戶自己在表單勾的，還是老闆事後在後台「加碼」加的，
+-- 並關聯回商品目錄（catalog_item_id），方便之後統計哪些品項最常被拿來當樣品。
+-- catalog_item_id 允許 NULL，是保留給舊資料（改版前就存在的 sample_name 純文字紀錄）相容用。
+ALTER TABLE customer_samples ADD COLUMN IF NOT EXISTS catalog_item_id INTEGER REFERENCES catalog_items(id);
+ALTER TABLE customer_samples ADD COLUMN IF NOT EXISTS added_by VARCHAR(10) NOT NULL DEFAULT 'customer'; -- 'customer' | 'owner'

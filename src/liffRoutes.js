@@ -2,29 +2,60 @@ const express = require('express');
 const config = require('./config');
 const line = require('./lineClient');
 const repo = require('./customerRepo');
-const { PRODUCT_LINES } = require('./productLines');
+const templateRepo = require('./sampleTemplateRepo');
+const catalogRepo = require('./catalogRepo');
 
 const router = express.Router();
 
-// 提供前端 LIFF 頁面需要的公開設定（LIFF ID、各產品線樣品清單）
-router.get('/api/liff/config', (req, res) => {
-  res.json({
-    liffId: config.line.liffId,
-    productLines: Object.fromEntries(
-      Object.entries(PRODUCT_LINES).map(([key, v]) => [key, { label: v.label, samples: v.samples }])
-    ),
-  });
+// 提供前端 LIFF 頁面需要的公開設定（LIFF ID、指定樣品模板的候選品項清單）
+router.get('/api/liff/config', async (req, res) => {
+  try {
+    const lineKey = req.query.line || '';
+    const templates = await templateRepo.listActive();
+    const template = templates.find((t) => t.key === lineKey) || templates[0];
+    if (!template) {
+      return res.json({
+        ok: true,
+        liffId: config.line.liffId,
+        maxSamples: templateRepo.MAX_CUSTOMER_SELECTABLE,
+        template: null,
+        items: [],
+      });
+    }
+    const items = await templateRepo.listTemplateItems(template.id);
+    res.json({
+      ok: true,
+      liffId: config.line.liffId,
+      maxSamples: templateRepo.MAX_CUSTOMER_SELECTABLE,
+      template: { key: template.key, label: template.label },
+      items: items.map((it) => ({
+        id: it.id,
+        name: it.name,
+        spec: it.spec,
+      })),
+    });
+  } catch (err) {
+    console.error('[liff] 讀取設定失敗', err);
+    res.status(500).json({ ok: false, error: '讀取設定失敗' });
+  }
 });
 
 router.post('/api/liff/submit', express.json(), async (req, res) => {
   try {
-    const { idToken, storeName, contactName, phone, address, samples, interestLine } = req.body || {};
+    const { idToken, storeName, contactName, phone, address, catalogItemIds, interestLine } = req.body || {};
 
     if (!idToken) {
       return res.status(400).json({ ok: false, error: '缺少 idToken，請確認是從 LINE 內的 LIFF 開啟表單' });
     }
     if (!storeName || !contactName || !phone || !address) {
       return res.status(400).json({ ok: false, error: '店名、聯絡人、電話、地址為必填' });
+    }
+
+    const ids = Array.isArray(catalogItemIds) ? catalogItemIds.map(Number).filter(Boolean) : [];
+    if (ids.length > templateRepo.MAX_CUSTOMER_SELECTABLE) {
+      return res
+        .status(400)
+        .json({ ok: false, error: `最多只能選擇 ${templateRepo.MAX_CUSTOMER_SELECTABLE} 樣品項` });
     }
 
     let verified;
@@ -38,21 +69,28 @@ router.post('/api/liff/submit', express.json(), async (req, res) => {
     const lineUserId = verified.sub;
     const customer = await repo.ensureCustomerByLineUserId(lineUserId, verified.name || null);
 
-    if (interestLine && PRODUCT_LINES[interestLine]) {
-      await repo.setInterestLine(customer.id, interestLine, PRODUCT_LINES[interestLine].label);
+    let templateLabel = interestLine || '';
+    if (interestLine) {
+      const template = await templateRepo.getByKey(interestLine);
+      if (template) {
+        templateLabel = template.label;
+        await repo.setInterestLine(customer.id, template.key, template.label);
+      }
     }
 
-    const cleanSamples = Array.isArray(samples) ? samples.filter(Boolean) : [];
-    await repo.submitLiffForm(customer.id, { storeName, contactName, phone, address, samples: cleanSamples });
+    const catalogItems = await catalogRepo.getByIds(ids);
+    const samples = catalogItems.map((it) => ({ catalogItemId: it.id, name: it.name }));
+    await repo.submitLiffForm(customer.id, { storeName, contactName, phone, address, samples });
 
     // 通知老闆有新客戶完成表單，等待確認訂單
     if (config.line.ownerUserId) {
-      const sampleText = cleanSamples.length ? cleanSamples.join('、') : '(未選擇樣品)';
+      const sampleText = samples.length ? samples.map((s) => s.name).join('、') : '(未選擇樣品)';
       await line.pushMessage(config.line.ownerUserId, [
         line.textMessage(
-          `🆕 新客戶完成表單，待您確認訂單\n` +
+          `【新客戶完成表單】待您確認訂單\n` +
+            `類型：${templateLabel || '(未分類)'}\n` +
             `店名：${storeName}\n聯絡人：${contactName}\n電話：${phone}\n地址：${address}\n` +
-            `想試樣品：${sampleText}\n\n請至後台管理系統確認訂單並安排出貨。`
+            `想試樣品：${sampleText}\n\n請至後台管理系統確認訂單並安排出貨（可在確認前加碼其他品項）。`
         ),
       ]);
     }

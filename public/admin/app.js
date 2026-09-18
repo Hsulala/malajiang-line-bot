@@ -10,7 +10,8 @@
   var STAGE_TITLE = {};
   STAGES.forEach(function (s) { STAGE_TITLE[s.key] = s.title; });
 
-  var INTEREST_LABEL = { malajiang: '麻辣醬', herb: '中藥材', both: '兩者皆有興趣' };
+  // interest_line 現在存的是樣品模板的 key，顯示名稱從 /api/admin/sample-templates 動態帶入
+  var TEMPLATE_LABEL = {};
 
   var boardEl = document.getElementById('board');
   var statsEl = document.getElementById('stats');
@@ -22,13 +23,19 @@
   var historicalListEl = document.getElementById('historicalList');
   var historicalMetaEl = document.getElementById('historicalMeta');
   var historicalPagerEl = document.getElementById('historicalPager');
+  var catalogListEl = document.getElementById('catalogList');
+  var templatesListEl = document.getElementById('templatesList');
 
   var ORDER_STATUS_LABEL = { pending: '待處理', confirmed: '已確認', ignored: '已忽略' };
 
   var customers = [];
   var orders = [];
   var faqs = [];
+  var catalogItems = [];
+  var sampleTemplates = [];
+  var currentRole = 'admin';
   var historicalState = { q: '', page: 1, pageSize: 50, total: 0 };
+  var catalogSearchState = { q: '' };
 
   function showToast(msg) {
     toastEl.textContent = msg;
@@ -109,7 +116,7 @@
         var btn = document.createElement('button');
         btn.className = 'card';
         var pillClass = c.stage === 'won' ? 'ok' : (c.stage === 'confirm' ? 'warn' : 'accent');
-        var interest = INTEREST_LABEL[c.interest_line] || '尚未選擇';
+        var interest = TEMPLATE_LABEL[c.interest_line] || (c.interest_line === 'multiple' ? '多種類型' : '尚未選擇');
         btn.innerHTML =
           '<div class="card-store">' + escapeHtml(c.store_name || c.display_name || '(未填店名)') + '</div>' +
           '<div class="card-contact">' + escapeHtml(c.contact_name || '') + '　<span class="mono">' + escapeHtml(c.phone || '') + '</span></div>' +
@@ -157,7 +164,13 @@
 
   function renderDrawer(c) {
     var samplesHtml = c.samples.length
-      ? c.samples.map(function (s) { return '<span class="sample-chip">' + escapeHtml(s) + '</span>'; }).join('')
+      ? c.samples.map(function (s) {
+          var ownerTag = s.added_by === 'owner' ? '　<span style="color:var(--accent-strong)">(老闆加碼)</span>' : '';
+          return (
+            '<span class="sample-chip">' + escapeHtml(s.sample_name) + ownerTag +
+            ' <a href="#" data-remove-sample="' + s.id + '" style="color:var(--text-faint);text-decoration:none;margin-left:4px;">✕</a></span>'
+          );
+        }).join('')
       : '<span class="sample-chip">尚未選擇</span>';
 
     var followHtml = c.followups.length
@@ -207,12 +220,15 @@
       '</div>' +
       '<div class="drawer-body">' +
         '<div class="field-grid">' +
-          '<div><div class="field-label">興趣類別</div><div class="field-value">' + (INTEREST_LABEL[c.interest_line] || '尚未選擇') + '</div></div>' +
+          '<div><div class="field-label">店家類型</div><div class="field-value">' + (TEMPLATE_LABEL[c.interest_line] || (c.interest_line === 'multiple' ? '多種類型' : '尚未選擇')) + '</div></div>' +
           '<div><div class="field-label">目前階段</div><select class="stage-select" id="stageSelect">' + stageOptions + '</select></div>' +
           '<div style="grid-column:1/-1"><div class="field-label">地址</div><div class="field-value">' + escapeHtml(c.address || '尚未填寫') + '</div></div>' +
         '</div>' +
         shipSection +
-        '<div><p class="section-title">樣品申請項目</p><div class="sample-list">' + samplesHtml + '</div></div>' +
+        '<div><p class="section-title">樣品申請項目</p><div class="sample-list">' + samplesHtml + '</div>' +
+          '<button class="btn ghost small" id="addExtraSampleBtn" style="margin-top:8px;">＋ 加碼樣品</button>' +
+          '<div id="extraSamplePicker" style="display:none;margin-top:10px;"></div>' +
+        '</div>' +
         '<div><p class="section-title">追蹤排程</p>' + followHtml + '</div>' +
         '<div><p class="section-title">互動歷程</p><div class="timeline">' + timelineHtml + '</div></div>' +
         '<div><p class="section-title">老闆備註</p>' +
@@ -260,6 +276,38 @@
         showToast('操作失敗：' + err.message);
       }
     });
+    Array.prototype.forEach.call(drawer.querySelectorAll('[data-remove-sample]'), function (a) {
+      a.addEventListener('click', async function (e) {
+        e.preventDefault();
+        try {
+          await api('/api/admin/customers/' + c.id + '/samples/' + a.getAttribute('data-remove-sample'), {
+            method: 'DELETE',
+          });
+          showToast('已移除');
+          openDrawer(c.id);
+        } catch (err) {
+          showToast('移除失敗：' + err.message);
+        }
+      });
+    });
+    var addExtraBtn = document.getElementById('addExtraSampleBtn');
+    if (addExtraBtn) {
+      addExtraBtn.addEventListener('click', async function () {
+        var picker = document.getElementById('extraSamplePicker');
+        if (picker.style.display !== 'none') {
+          picker.style.display = 'none';
+          return;
+        }
+        picker.style.display = 'block';
+        picker.innerHTML = '<div class="loading">載入商品目錄中...</div>';
+        try {
+          if (!catalogItems.length) await loadCatalogItems();
+          renderExtraSamplePicker(c.id);
+        } catch (err) {
+          picker.innerHTML = '<div class="empty">載入失敗：' + escapeHtml(err.message) + '</div>';
+        }
+      });
+    }
     var confirmBtn = document.getElementById('confirmOrderBtn');
     if (confirmBtn) {
       confirmBtn.addEventListener('click', async function () {
@@ -542,8 +590,268 @@
     if (e.key === 'Enter') document.getElementById('historicalSearchBtn').click();
   });
 
+  // ---- 商品目錄 / 樣品模板 共用資料載入 ----
+  async function loadCatalogItems() {
+    var data = await api('/api/admin/catalog-items');
+    catalogItems = data.items;
+  }
+
+  async function loadSampleTemplates() {
+    var data = await api('/api/admin/sample-templates');
+    sampleTemplates = data.templates;
+    TEMPLATE_LABEL = {};
+    sampleTemplates.forEach(function (t) { TEMPLATE_LABEL[t.key] = t.label; });
+  }
+
+  function groupByCategory(items) {
+    var groups = {};
+    var order = [];
+    items.forEach(function (it) {
+      if (!groups[it.category]) { groups[it.category] = []; order.push(it.category); }
+      groups[it.category].push(it);
+    });
+    return { groups: groups, order: order };
+  }
+
+  // 客戶詳細頁：老闆「加碼」商品挑選器，從完整商品目錄勾選要額外送給這位客戶的品項
+  function renderExtraSamplePicker(customerId) {
+    var picker = document.getElementById('extraSamplePicker');
+    var g = groupByCategory(catalogItems.filter(function (it) { return it.is_active; }));
+    var html = '<input type="text" id="extraSampleSearch" placeholder="搜尋品名..." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;margin-bottom:8px;">';
+    html += '<div id="extraSampleOptions" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;">';
+    g.order.forEach(function (cat) {
+      html += '<div style="font-size:11px;color:var(--text-faint);font-weight:700;margin:8px 0 4px;">' + escapeHtml(cat) + '</div>';
+      g.groups[cat].forEach(function (it) {
+        var priceText = it.unit_price != null ? ('　$' + it.unit_price + (it.price_unit || '')) : '';
+        html +=
+          '<label class="extra-sample-option" data-name="' + escapeHtml((it.name + ' ' + (it.spec || '')).toLowerCase()) + '" style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-size:13px;">' +
+          '<input type="checkbox" value="' + it.id + '"> ' + escapeHtml(it.name) + (it.spec ? '（' + escapeHtml(it.spec) + '）' : '') + priceText +
+          '</label>';
+      });
+    });
+    html += '</div><button class="btn primary small" id="extraSampleSubmit" style="margin-top:8px;">加入所選品項</button>';
+    picker.innerHTML = html;
+
+    document.getElementById('extraSampleSearch').addEventListener('input', function (e) {
+      var q = e.target.value.trim().toLowerCase();
+      Array.prototype.forEach.call(picker.querySelectorAll('.extra-sample-option'), function (row) {
+        row.style.display = row.getAttribute('data-name').indexOf(q) >= 0 ? 'flex' : 'none';
+      });
+    });
+    document.getElementById('extraSampleSubmit').addEventListener('click', async function () {
+      var ids = Array.prototype.map.call(
+        picker.querySelectorAll('input[type=checkbox]:checked'),
+        function (cb) { return Number(cb.value); }
+      );
+      if (!ids.length) { showToast('請至少選一項'); return; }
+      try {
+        await api('/api/admin/customers/' + customerId + '/extra-samples', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ catalogItemIds: ids }),
+        });
+        showToast('已加碼');
+        openDrawer(customerId);
+      } catch (err) {
+        showToast('加碼失敗：' + err.message);
+      }
+    });
+  }
+
+  // ---- 商品目錄管理（超級管理者限定）----
+  function renderCatalogList() {
+    var q = catalogSearchState.q.toLowerCase();
+    var filtered = catalogItems.filter(function (it) {
+      return !q || (it.category + it.name).toLowerCase().indexOf(q) >= 0;
+    });
+    if (!filtered.length) {
+      catalogListEl.innerHTML = '<div class="empty">沒有符合的品項</div>';
+      return;
+    }
+    var g = groupByCategory(filtered);
+    var html = '';
+    g.order.forEach(function (cat) {
+      html += '<p class="section-title" style="margin-top:18px;">' + escapeHtml(cat) + '</p>';
+      g.groups[cat].forEach(function (it) {
+        var statusPill = it.is_active ? '' : '<span class="pill warn">已下架</span>';
+        var priceText = it.unit_price != null ? ('$' + it.unit_price + (it.price_unit || '')) : '未設價';
+        html +=
+          '<div class="list-row">' +
+            '<div class="list-row-head">' +
+              '<div><div class="list-row-title">' + escapeHtml(it.name) + '</div>' +
+                '<div class="list-row-meta">' + escapeHtml(it.spec || '') + '　' + escapeHtml(priceText) + '</div></div>' +
+              '<div>' + statusPill + '</div>' +
+            '</div>' +
+            '<div class="list-row-actions">' +
+              '<button class="btn ghost small" data-catalog-edit="' + it.id + '">編輯</button>' +
+            '</div>' +
+          '</div>';
+      });
+    });
+    catalogListEl.innerHTML = html;
+    Array.prototype.forEach.call(catalogListEl.querySelectorAll('[data-catalog-edit]'), function (btn) {
+      btn.addEventListener('click', function () {
+        openCatalogItemDrawer(catalogItems.filter(function (it) { return String(it.id) === btn.getAttribute('data-catalog-edit'); })[0]);
+      });
+    });
+  }
+
+  function openCatalogItemDrawer(item) {
+    var isEdit = !!item;
+    item = item || { category: '', name: '', spec: '', unit_price: '', price_unit: '', is_active: true };
+    drawer.innerHTML =
+      '<div class="drawer-head">' +
+        '<div><p class="drawer-store">' + (isEdit ? '編輯品項' : '新增品項') + '</p></div>' +
+        '<button class="drawer-close" id="drawerClose">✕</button>' +
+      '</div>' +
+      '<div class="drawer-body faq-form">' +
+        '<label>分類</label><input type="text" id="ciCategory" value="' + escapeHtml(item.category) + '" placeholder="例如：麻辣醬系列">' +
+        '<label>品名</label><input type="text" id="ciName" value="' + escapeHtml(item.name) + '">' +
+        '<label>規格</label><input type="text" id="ciSpec" value="' + escapeHtml(item.spec || '') + '" placeholder="例如：1斤、3kg裝">' +
+        '<label>單價</label><input type="text" id="ciPrice" value="' + (item.unit_price != null ? item.unit_price : '') + '">' +
+        '<label>單位（例如 /kg、/斤，整包/整份計價可留空）</label><input type="text" id="ciPriceUnit" value="' + escapeHtml(item.price_unit || '') + '">' +
+        (isEdit ? '<div class="checkbox-row"><input type="checkbox" id="ciActive"' + (item.is_active ? ' checked' : '') + '> <label style="margin:0;font-weight:400;color:var(--text)">上架中</label></div>' : '') +
+        '<div style="display:flex;gap:8px;margin-top:18px;"><button class="btn primary" id="ciSaveBtn">儲存</button></div>' +
+      '</div>';
+    scrim.classList.add('open');
+    drawer.classList.add('open');
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    document.getElementById('ciSaveBtn').addEventListener('click', async function () {
+      var payload = {
+        category: document.getElementById('ciCategory').value.trim(),
+        name: document.getElementById('ciName').value.trim(),
+        spec: document.getElementById('ciSpec').value.trim(),
+        unitPrice: document.getElementById('ciPrice').value.trim() ? Number(document.getElementById('ciPrice').value.trim()) : null,
+        priceUnit: document.getElementById('ciPriceUnit').value.trim(),
+      };
+      if (!payload.category || !payload.name) { showToast('請填寫分類與品名'); return; }
+      try {
+        if (isEdit) {
+          payload.isActive = document.getElementById('ciActive').checked;
+          await api('/api/admin/catalog-items/' + item.id, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          });
+        } else {
+          await api('/api/admin/catalog-items', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          });
+        }
+        showToast('已儲存');
+        closeDrawer();
+        await loadCatalogItems();
+        renderCatalogList();
+      } catch (err) {
+        showToast('儲存失敗：' + err.message);
+      }
+    });
+  }
+
+  // ---- 樣品模板管理（超級管理者限定）----
+  function renderTemplatesList() {
+    if (!sampleTemplates.length) {
+      templatesListEl.innerHTML = '<div class="empty">還沒有任何樣品模板</div>';
+      return;
+    }
+    templatesListEl.innerHTML = sampleTemplates.map(function (t) {
+      var statusPill = t.is_active ? '' : '<span class="pill warn">已下架</span>';
+      var itemNames = (t.items || []).map(function (it) { return it.name; }).join('、') || '(尚未設定品項)';
+      return (
+        '<div class="list-row">' +
+          '<div class="list-row-head">' +
+            '<div><div class="list-row-title">' + escapeHtml(t.label) + '</div>' +
+              '<div class="list-row-meta">代碼：' + escapeHtml(t.key) + '</div></div>' +
+            '<div>' + statusPill + '</div>' +
+          '</div>' +
+          '<div class="list-row-body">候選品項：' + escapeHtml(itemNames) + '</div>' +
+          '<div class="list-row-actions"><button class="btn ghost small" data-template-edit="' + t.id + '">編輯</button></div>' +
+        '</div>'
+      );
+    }).join('');
+    Array.prototype.forEach.call(templatesListEl.querySelectorAll('[data-template-edit]'), function (btn) {
+      btn.addEventListener('click', function () {
+        openTemplateDrawer(sampleTemplates.filter(function (t) { return String(t.id) === btn.getAttribute('data-template-edit'); })[0]);
+      });
+    });
+  }
+
+  async function openTemplateDrawer(tpl) {
+    var isEdit = !!tpl;
+    tpl = tpl || { key: '', label: '', trigger_keywords: '', intro_message: '', d2_message: '', d16_message: '', is_active: true, items: [] };
+    if (!catalogItems.length) await loadCatalogItems();
+    var selectedIds = (tpl.items || []).map(function (it) { return it.id; });
+    var g = groupByCategory(catalogItems.filter(function (it) { return it.is_active; }));
+    var itemsHtml = '<div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;">';
+    g.order.forEach(function (cat) {
+      itemsHtml += '<div style="font-size:11px;color:var(--text-faint);font-weight:700;margin:8px 0 4px;">' + escapeHtml(cat) + '</div>';
+      g.groups[cat].forEach(function (it) {
+        var checked = selectedIds.indexOf(it.id) >= 0 ? ' checked' : '';
+        itemsHtml +=
+          '<label style="display:flex;align-items:center;gap:8px;padding:4px 2px;font-size:13px;">' +
+          '<input type="checkbox" class="tpl-item-cb" value="' + it.id + '"' + checked + '> ' + escapeHtml(it.name) + (it.spec ? '（' + escapeHtml(it.spec) + '）' : '') +
+          '</label>';
+      });
+    });
+    itemsHtml += '</div>';
+
+    drawer.innerHTML =
+      '<div class="drawer-head">' +
+        '<div><p class="drawer-store">' + (isEdit ? '編輯樣品模板' : '新增樣品模板') + '</p></div>' +
+        '<button class="drawer-close" id="drawerClose">✕</button>' +
+      '</div>' +
+      '<div class="drawer-body faq-form">' +
+        (isEdit ? '' : '<label>代碼（英數，之後不能改，例如 hotpot）</label><input type="text" id="tplKey" value="">') +
+        '<label>顯示名稱（例如：火鍋店）</label><input type="text" id="tplLabel" value="' + escapeHtml(tpl.label) + '">' +
+        '<label>額外觸發關鍵字（逗號分隔，顯示名稱本身不用重複填）</label><input type="text" id="tplKeywords" value="' + escapeHtml(tpl.trigger_keywords || '') + '">' +
+        '<label>開場話術（客戶選了這個類型之後收到的訊息）</label><textarea id="tplIntro">' + escapeHtml(tpl.intro_message || '') + '</textarea>' +
+        '<label>D+2 追蹤訊息</label><textarea id="tplD2">' + escapeHtml(tpl.d2_message || '') + '</textarea>' +
+        '<label>D+16 追蹤訊息</label><textarea id="tplD16">' + escapeHtml(tpl.d16_message || '') + '</textarea>' +
+        '<label>候選樣品品項（客戶在表單最多可勾 7 樣）</label>' + itemsHtml +
+        (isEdit ? '<div class="checkbox-row"><input type="checkbox" id="tplActive"' + (tpl.is_active ? ' checked' : '') + '> <label style="margin:0;font-weight:400;color:var(--text)">上架中</label></div>' : '') +
+        '<div style="display:flex;gap:8px;margin-top:18px;"><button class="btn primary" id="tplSaveBtn">儲存</button></div>' +
+      '</div>';
+    scrim.classList.add('open');
+    drawer.classList.add('open');
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    document.getElementById('tplSaveBtn').addEventListener('click', async function () {
+      var catalogItemIds = Array.prototype.map.call(
+        drawer.querySelectorAll('.tpl-item-cb:checked'),
+        function (cb) { return Number(cb.value); }
+      );
+      var payload = {
+        label: document.getElementById('tplLabel').value.trim(),
+        triggerKeywords: document.getElementById('tplKeywords').value.trim(),
+        introMessage: document.getElementById('tplIntro').value.trim(),
+        d2Message: document.getElementById('tplD2').value.trim(),
+        d16Message: document.getElementById('tplD16').value.trim(),
+        catalogItemIds: catalogItemIds,
+      };
+      if (!payload.label) { showToast('請填寫顯示名稱'); return; }
+      try {
+        if (isEdit) {
+          payload.isActive = document.getElementById('tplActive').checked;
+          await api('/api/admin/sample-templates/' + tpl.id, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          });
+        } else {
+          var key = document.getElementById('tplKey').value.trim();
+          if (!key) { showToast('請填寫代碼'); return; }
+          payload.key = key;
+          await api('/api/admin/sample-templates', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          });
+        }
+        showToast('已儲存');
+        closeDrawer();
+        await loadSampleTemplates();
+        renderTemplatesList();
+      } catch (err) {
+        showToast('儲存失敗：' + err.message);
+      }
+    });
+  }
+
   // ---- 分頁切換 ----
-  var loadedViews = { board: true, orders: false, faq: false, historical: false };
+  var loadedViews = { board: true, orders: false, faq: false, historical: false, catalog: false, templates: false };
   function switchView(view) {
     Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {
       btn.classList.toggle('active', btn.getAttribute('data-view') === view);
@@ -557,6 +865,8 @@
       if (view === 'orders') loadOrders().catch(function (e) { showToast('讀取訂單記錄失敗：' + e.message); });
       if (view === 'faq') loadFaqs().catch(function (e) { showToast('讀取知識庫失敗：' + e.message); });
       if (view === 'historical') loadHistorical(1).catch(function (e) { showToast('讀取歷史客戶紀錄失敗：' + e.message); });
+      if (view === 'catalog') loadCatalogItems().then(renderCatalogList).catch(function (e) { showToast('讀取商品目錄失敗：' + e.message); });
+      if (view === 'templates') loadSampleTemplates().then(renderTemplatesList).catch(function (e) { showToast('讀取樣品模板失敗：' + e.message); });
     }
   }
   Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {
@@ -566,9 +876,20 @@
   async function init() {
     document.getElementById('todayDate').textContent = new Date().toLocaleDateString('zh-TW');
     try {
-      await api('/api/admin/me');
+      var me = await api('/api/admin/me');
+      currentRole = me.role || 'admin';
     } catch (e) {
       return; // api() already redirected to login
+    }
+    if (currentRole === 'superadmin') {
+      Array.prototype.forEach.call(document.querySelectorAll('.superadmin-only'), function (el) {
+        el.style.display = '';
+      });
+    }
+    try {
+      await loadSampleTemplates();
+    } catch (e) {
+      // 標籤讀取失敗不擋主流程，看板頂多先顯示模板代碼
     }
     try {
       await loadCustomers();
@@ -589,6 +910,16 @@
   });
   document.getElementById('addFaqBtn').addEventListener('click', function () {
     openFaqDrawer(null);
+  });
+  document.getElementById('addCatalogItemBtn').addEventListener('click', function () {
+    openCatalogItemDrawer(null);
+  });
+  document.getElementById('catalogSearch').addEventListener('input', function (e) {
+    catalogSearchState.q = e.target.value.trim();
+    renderCatalogList();
+  });
+  document.getElementById('addTemplateBtn').addEventListener('click', function () {
+    openTemplateDrawer(null);
   });
 
   init();

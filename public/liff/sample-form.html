@@ -65,7 +65,7 @@
 <script>
 (function () {
   var params = new URLSearchParams(window.location.search);
-  var lineKey = params.get('line') || 'malajiang';
+  var lineKey = params.get('line') || '';
   var selected = new Set();
   var config = null;
   var statusEl = document.getElementById('status');
@@ -76,28 +76,39 @@
     statusEl.className = kind || '';
   }
 
-  function renderSamples(list) {
+  function renderSamples(items, maxSamples) {
     var wrap = document.getElementById('samples');
     wrap.innerHTML = '';
-    (list || []).forEach(function (name) {
+    (items || []).forEach(function (item) {
       var chip = document.createElement('div');
       chip.className = 'chip';
-      chip.textContent = name;
+      chip.textContent = item.spec ? item.name + '（' + item.spec + '）' : item.name;
       chip.addEventListener('click', function () {
-        if (selected.has(name)) { selected.delete(name); chip.classList.remove('selected'); }
-        else { selected.add(name); chip.classList.add('selected'); }
+        if (selected.has(item.id)) {
+          selected.delete(item.id);
+          chip.classList.remove('selected');
+        } else {
+          if (selected.size >= maxSamples) {
+            setStatus('最多只能選 ' + maxSamples + ' 樣，如需更多可以直接跟我們說唷～', 'error');
+            return;
+          }
+          selected.add(item.id);
+          chip.classList.add('selected');
+          setStatus('');
+        }
       });
       wrap.appendChild(chip);
     });
   }
 
   async function loadConfig() {
-    var resp = await fetch('/api/liff/config');
+    var resp = await fetch('/api/liff/config?line=' + encodeURIComponent(lineKey));
     config = await resp.json();
-    var line = config.productLines[lineKey] || config.productLines.malajiang;
-    document.title = '樣品申請表單｜' + line.label;
-    document.getElementById('samplesLabel').textContent = '想試的 ' + line.label + ' 品項（可複選）';
-    renderSamples(line.samples);
+    var label = (config.template && config.template.label) || '樣品';
+    document.title = '樣品申請表單｜' + label;
+    document.getElementById('samplesLabel').textContent =
+      '想試的 ' + label + ' 品項（最多選 ' + config.maxSamples + ' 樣）';
+    renderSamples(config.items, config.maxSamples);
     return config;
   }
 
@@ -143,7 +154,7 @@
           phone: phone,
           address: address,
           interestLine: lineKey,
-          samples: Array.from(selected),
+          catalogItemIds: Array.from(selected),
         }),
       });
       var data = await resp.json();
