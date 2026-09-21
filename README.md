@@ -68,16 +68,13 @@ npm run dev       # 本機啟動，預設 http://localhost:3000
 2. 在同專案新增一個 **GitHub Repo / Empty Service** 部署這個程式碼資料夾
 3. 到這個 Node 服務的 **Variables**，把 `.env.example` 裡列的變數都設定好：
    - `DATABASE_URL` 直接參考 Postgres 服務提供的變數（Railway 可以用 Reference Variable 帶入，不用手動複製）
-   - 其餘（`LINE_CHANNEL_ACCESS_TOKEN`、`LINE_CHANNEL_SECRET`、`LINE_CHANNEL_ID`、`LIFF_ID`、`OWNER_LINE_USER_ID`、`ADMIN_PASSWORD`、`SUPERADMIN_PASSWORD`、`JWT_SECRET`）依照上面章節填入
+   - 其餘（`LINE_CHANNEL_ACCESS_TOKEN`、`LINE_CHANNEL_SECRET`、`LINE_CHANNEL_ID`、`LIFF_ID`、`OWNER_LINE_USER_ID`、`JWT_SECRET`）依照上面章節填入
    - 建議加 `TZ=Asia/Taipei`，讓每天 9:00 的排程對齊台灣時間
    - `PUBLIC_BASE_URL` 填正式網域
 4. Deploy 完成後，Railway 會給一個網域，例如 `https://malajiang-bot.up.railway.app`
 5. 回 LINE Developers Console 把 Webhook URL、LIFF Endpoint URL 補上這個網域（見上一章節）
-6. 到 Railway 服務的 Shell（或本機指向同一個 `DATABASE_URL`）執行一次：
-   ```bash
-   npm run migrate
-   ```
-7. 打開 `https://你的網域/admin` 用 `ADMIN_PASSWORD` 登入，確認看板可以打開（一開始會是空的，因為還沒有真實客戶資料）
+6. `npm run migrate` 會在 `preDeployCommand` 自動跑，不用手動執行
+7. 後台帳號密碼不是環境變數，第一次部署後要另外初始化，見下面「後台帳號系統」一節的「首次部署要做的事」
 
 ---
 
@@ -104,15 +101,30 @@ npm run dev       # 本機啟動，預設 http://localhost:3000
 
 初版的商品目錄與 6 種店家類型模板，是根據跟老闆的對話紀錄整理出的第一版建議清單（見 `data-import/catalog_seed.json`、`data-import/sample_templates_seed.json`，用 `scripts/build_catalog_seed.py`、`scripts/build_template_seed.py` 產生），品項是否正確、要不要調整，麻煩上線後在後台「商品目錄」「樣品模板」分頁實際看過一輪再確認。
 
-### 雙角色後台登入（`src/adminAuth.js`）
-環境變數多了一組 `SUPERADMIN_PASSWORD`：
-- 用 `ADMIN_PASSWORD` 登入 = 一般管理者（老闆），可以做客戶看板、訂單記錄、FAQ、歷史客戶紀錄、老闆加碼這些日常操作。
-- 用 `SUPERADMIN_PASSWORD` 登入 = 超級管理者，多了商品目錄／樣品模板的新增編輯權限。
+### 後台帳號系統（`src/adminAuth.js` + `src/adminUserRepo.js`）
+後台登入不是共用密碼，是每個人自己一組帳號密碼（`admin_users` 資料表），分三層角色：
 
-兩組密碼登入同一個網址、同一個登入頁，差別只在密碼，後台會依登入的角色自動顯示/隱藏對應的分頁，伺服器端的 API 也有對應檢查，不是只有前端藏起來而已。
+| 角色 | 對應的人 | 權限 |
+|---|---|---|
+| `staff`（員工） | 老闆底下的員工 | 客戶看板、訂單記錄、FAQ、歷史客戶紀錄、老闆加碼——日常 CRM 操作都能用，不能碰帳號管理跟商品目錄 |
+| `admin`（老闆） | 老闆本人（阿翔） | 除了 `staff` 能做的之外，可以在後台「帳號管理」分頁自己新增/停用員工帳號，但商品目錄／樣品模板還是唯讀 |
+| `superadmin`（你） | ULY | 全部權限，包含商品目錄／樣品模板編輯，以及管理所有人的帳號（含老闆） |
+
+帳號被停用或改角色是**即時生效**的，不用等對方的登入 session 過期——因為伺服器端每次請求都會即時查資料庫確認帳號還在啟用中，不是只信任登入時發的憑證。系統會擋住「把最後一位超級管理者停用或降級」，避免整個後台被鎖死。
+
+**首次部署要做的事**：`admin_users` 剛建表時是空的，這時候 `/api/admin/bootstrap-accounts` 這個路由會開放（不用登入）用來建立第一批帳號，範例：
+```bash
+curl -X POST https://你的網域/api/admin/bootstrap-accounts \
+  -H "Content-Type: application/json" \
+  -d '{"accounts":[
+    {"username":"uly","password":"...","displayName":"ULY","role":"superadmin"},
+    {"username":"axiang","password":"...","displayName":"阿翔","role":"admin"}
+  ]}'
+```
+只要 `admin_users` 裡已經有任何一筆資料，這個路由就會永久回 403，不能再用來建帳號或被濫用——之後新增帳號都要透過登入後的「帳號管理」分頁。
 
 ### 資料庫結構
-見 `sql/schema.sql`：`customers`（客戶主檔）、`customer_samples`（申請/加碼的樣品項目，`added_by` 區分是客戶自選還是老闆加碼）、`timeline_events`（互動歷程時間軸）、`followups`（D+2/D+16 追蹤排程與回覆記錄）、`order_messages`（熟客文字下單記錄）、`faqs`（FAQ 知識庫）、`historical_customers`（從過往對話匯入的歷史客戶紀錄）、`catalog_items`（商品母目錄）、`sample_templates` + `sample_template_items`（店家類型樣品模板與候選品項）。
+見 `sql/schema.sql`：`customers`（客戶主檔）、`customer_samples`（申請/加碼的樣品項目，`added_by` 區分是客戶自選還是老闆加碼）、`timeline_events`（互動歷程時間軸）、`followups`（D+2/D+16 追蹤排程與回覆記錄）、`order_messages`（熟客文字下單記錄）、`faqs`（FAQ 知識庫）、`historical_customers`（從過往對話匯入的歷史客戶紀錄）、`catalog_items`（商品母目錄）、`sample_templates` + `sample_template_items`（店家類型樣品模板與候選品項）、`admin_users`（後台帳號）。
 
 ### 熟客文字下單記錄（`src/orderDetector.js` + `src/orderRepo.js`）
 只要客戶已經走完至少一次樣品流程（階段是「已出貨/樣品追蹤中/已成交」），機器人就會把符合下單語意的文字訊息（例如提到「下單」「貨到付款」「月結」，或出現「5包」「10斤」這類數量單位）記錄下來，並推播通知老闆，客戶也會收到「已收到，老闆確認後會盡快聯繫」的自動回覆。這個判斷**故意放在產品線關鍵字比對之前**，避免下單訊息裡剛好提到品項名稱（如「麻辣醬」）被誤判成重新選產品線。

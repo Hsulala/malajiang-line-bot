@@ -139,6 +139,7 @@
     <button class="tab-btn" data-view="historical">歷史客戶紀錄</button>
     <button class="tab-btn superadmin-only" data-view="catalog" style="display:none;">商品目錄</button>
     <button class="tab-btn superadmin-only" data-view="templates" style="display:none;">樣品模板</button>
+    <button class="tab-btn account-manager-only" data-view="accounts" style="display:none;">帳號管理</button>
   </div>
 
   <div class="view active" id="boardView">
@@ -216,6 +217,17 @@
       <button class="btn primary" id="addTemplateBtn">＋ 新增模板</button>
     </div>
     <div id="templatesList"><div class="loading">載入中...</div></div>
+  </div>
+
+  <div class="view" id="accountsView">
+    <div class="board-head">
+      <div>
+        <h2>帳號管理</h2>
+        <p id="accountsHint">老闆可以在這裡新增／停用員工帳號。超級管理者可以管理所有人的帳號。</p>
+      </div>
+      <button class="btn primary" id="addAccountBtn">＋ 新增帳號</button>
+    </div>
+    <div id="accountsList"><div class="loading">載入中...</div></div>
   </div>
 </div>
 

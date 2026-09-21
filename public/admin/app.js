@@ -25,15 +25,19 @@
   var historicalPagerEl = document.getElementById('historicalPager');
   var catalogListEl = document.getElementById('catalogList');
   var templatesListEl = document.getElementById('templatesList');
+  var accountsListEl = document.getElementById('accountsList');
 
   var ORDER_STATUS_LABEL = { pending: '待處理', confirmed: '已確認', ignored: '已忽略' };
+  var ROLE_LABEL = { staff: '員工', admin: '老闆', superadmin: '超級管理者' };
 
   var customers = [];
   var orders = [];
   var faqs = [];
   var catalogItems = [];
   var sampleTemplates = [];
+  var accounts = [];
   var currentRole = 'admin';
+  var currentUsername = '';
   var historicalState = { q: '', page: 1, pageSize: 50, total: 0 };
   var catalogSearchState = { q: '' };
 
@@ -850,8 +854,120 @@
     });
   }
 
+  // ---- 帳號管理（老闆/超級管理者限定）----
+  async function loadAccounts() {
+    var data = await api('/api/admin/accounts');
+    accounts = data.accounts;
+  }
+
+  function renderAccountsList() {
+    if (!accounts.length) {
+      accountsListEl.innerHTML = '<div class="empty">還沒有其他帳號</div>';
+      return;
+    }
+    accountsListEl.innerHTML = accounts.map(function (a) {
+      var statusPill = a.is_active ? '' : '<span class="pill warn">已停用</span>';
+      var canEdit = currentRole === 'superadmin' || a.role === 'staff';
+      var actions = canEdit
+        ? '<div class="list-row-actions"><button class="btn ghost small" data-account-edit="' + a.id + '">管理</button></div>'
+        : '';
+      return (
+        '<div class="list-row">' +
+          '<div class="list-row-head">' +
+            '<div><div class="list-row-title">' + escapeHtml(a.display_name) + '　<span style="color:var(--text-faint);font-weight:400;">@' + escapeHtml(a.username) + '</span></div>' +
+              '<div class="list-row-meta">' + escapeHtml(ROLE_LABEL[a.role] || a.role) + '</div></div>' +
+            '<div>' + statusPill + '</div>' +
+          '</div>' +
+          actions +
+        '</div>'
+      );
+    }).join('');
+    Array.prototype.forEach.call(accountsListEl.querySelectorAll('[data-account-edit]'), function (btn) {
+      btn.addEventListener('click', function () {
+        openAccountDrawer(accounts.filter(function (a) { return String(a.id) === btn.getAttribute('data-account-edit'); })[0]);
+      });
+    });
+  }
+
+  function openAccountDrawer(account) {
+    var isEdit = !!account;
+    // 老闆（admin）只能新增/管理員工帳號，角色欄位直接鎖死不給選；超級管理者可以自由指定角色
+    var roleFieldHtml;
+    if (currentRole !== 'superadmin') {
+      roleFieldHtml = '';
+    } else if (isEdit) {
+      roleFieldHtml =
+        '<label>角色</label><select id="acRole">' +
+        userRepoRoleOptions(account.role) +
+        '</select>';
+    } else {
+      roleFieldHtml = '<label>角色</label><select id="acRole">' + userRepoRoleOptions('staff') + '</select>';
+    }
+    drawer.innerHTML =
+      '<div class="drawer-head">' +
+        '<div><p class="drawer-store">' + (isEdit ? '管理帳號' : '新增帳號') + '</p></div>' +
+        '<button class="drawer-close" id="drawerClose">✕</button>' +
+      '</div>' +
+      '<div class="drawer-body faq-form">' +
+        (isEdit ? '' : '<label>帳號（英數，登入用，之後不能改）</label><input type="text" id="acUsername" value="" autocomplete="off">') +
+        '<label>顯示名稱</label><input type="text" id="acDisplayName" value="' + (isEdit ? escapeHtml(account.display_name) : '') + '">' +
+        roleFieldHtml +
+        (isEdit
+          ? '<label>重設密碼（留空代表不修改，要改至少 6 碼）</label><input type="password" id="acNewPassword" autocomplete="new-password">'
+          : '<label>密碼（至少 6 碼）</label><input type="password" id="acPassword" autocomplete="new-password">') +
+        (isEdit ? '<div class="checkbox-row"><input type="checkbox" id="acActive"' + (account.is_active ? ' checked' : '') + '> <label style="margin:0;font-weight:400;color:var(--text)">啟用中</label></div>' : '') +
+        '<div style="display:flex;gap:8px;margin-top:18px;"><button class="btn primary" id="acSaveBtn">儲存</button></div>' +
+      '</div>';
+    scrim.classList.add('open');
+    drawer.classList.add('open');
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    document.getElementById('acSaveBtn').addEventListener('click', async function () {
+      try {
+        if (isEdit) {
+          var payload = { displayName: document.getElementById('acDisplayName').value.trim() };
+          if (!payload.displayName) { showToast('請填寫顯示名稱'); return; }
+          payload.isActive = document.getElementById('acActive').checked;
+          var roleSel = document.getElementById('acRole');
+          if (roleSel) payload.role = roleSel.value;
+          var newPw = document.getElementById('acNewPassword').value;
+          if (newPw) {
+            if (newPw.length < 6) { showToast('密碼至少要 6 碼'); return; }
+            payload.newPassword = newPw;
+          }
+          await api('/api/admin/accounts/' + account.id, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          });
+        } else {
+          var username = document.getElementById('acUsername').value.trim();
+          var displayName = document.getElementById('acDisplayName').value.trim();
+          var password = document.getElementById('acPassword').value;
+          if (!username || !displayName) { showToast('請填寫帳號與顯示名稱'); return; }
+          if (!password || password.length < 6) { showToast('密碼至少要 6 碼'); return; }
+          var body = { username: username, displayName: displayName, password: password };
+          var roleSel2 = document.getElementById('acRole');
+          if (roleSel2) body.role = roleSel2.value;
+          await api('/api/admin/accounts', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+          });
+        }
+        showToast('已儲存');
+        closeDrawer();
+        await loadAccounts();
+        renderAccountsList();
+      } catch (err) {
+        showToast('儲存失敗：' + err.message);
+      }
+    });
+  }
+
+  function userRepoRoleOptions(selected) {
+    return ['staff', 'admin', 'superadmin'].map(function (r) {
+      return '<option value="' + r + '"' + (r === selected ? ' selected' : '') + '>' + (ROLE_LABEL[r] || r) + '</option>';
+    }).join('');
+  }
+
   // ---- 分頁切換 ----
-  var loadedViews = { board: true, orders: false, faq: false, historical: false, catalog: false, templates: false };
+  var loadedViews = { board: true, orders: false, faq: false, historical: false, catalog: false, templates: false, accounts: false };
   function switchView(view) {
     Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {
       btn.classList.toggle('active', btn.getAttribute('data-view') === view);
@@ -867,6 +983,7 @@
       if (view === 'historical') loadHistorical(1).catch(function (e) { showToast('讀取歷史客戶紀錄失敗：' + e.message); });
       if (view === 'catalog') loadCatalogItems().then(renderCatalogList).catch(function (e) { showToast('讀取商品目錄失敗：' + e.message); });
       if (view === 'templates') loadSampleTemplates().then(renderTemplatesList).catch(function (e) { showToast('讀取樣品模板失敗：' + e.message); });
+      if (view === 'accounts') loadAccounts().then(renderAccountsList).catch(function (e) { showToast('讀取帳號列表失敗：' + e.message); });
     }
   }
   Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {
@@ -877,7 +994,8 @@
     document.getElementById('todayDate').textContent = new Date().toLocaleDateString('zh-TW');
     try {
       var me = await api('/api/admin/me');
-      currentRole = me.role || 'admin';
+      currentRole = me.role || 'staff';
+      currentUsername = me.username || '';
     } catch (e) {
       return; // api() already redirected to login
     }
@@ -885,6 +1003,17 @@
       Array.prototype.forEach.call(document.querySelectorAll('.superadmin-only'), function (el) {
         el.style.display = '';
       });
+    }
+    if (currentRole === 'admin' || currentRole === 'superadmin') {
+      Array.prototype.forEach.call(document.querySelectorAll('.account-manager-only'), function (el) {
+        el.style.display = '';
+      });
+      var hintEl = document.getElementById('accountsHint');
+      if (hintEl && currentRole === 'admin') {
+        hintEl.textContent = '你可以在這裡新增／停用員工帳號（員工只有日常 CRM 操作權限，不能動商品目錄或管理帳號）。';
+      } else if (hintEl) {
+        hintEl.textContent = '超級管理者可以管理所有人的帳號，包含老闆跟員工。';
+      }
     }
     try {
       await loadSampleTemplates();
@@ -920,6 +1049,9 @@
   });
   document.getElementById('addTemplateBtn').addEventListener('click', function () {
     openTemplateDrawer(null);
+  });
+  document.getElementById('addAccountBtn').addEventListener('click', function () {
+    openAccountDrawer(null);
   });
 
   init();

@@ -23,13 +23,15 @@
 <body>
   <div class="card">
     <h1>麻辣工坊 後台管理</h1>
-    <p>請輸入管理密碼登入客戶看板</p>
-    <input type="password" id="password" placeholder="管理密碼" autofocus>
+    <p>請輸入你的帳號密碼登入</p>
+    <input type="text" id="username" placeholder="帳號" autofocus autocomplete="username">
+    <input type="password" id="password" placeholder="密碼" autocomplete="current-password">
     <button id="loginBtn">登入</button>
     <div id="err"></div>
   </div>
 <script>
   async function doLogin() {
+    var uname = document.getElementById('username').value.trim();
     var pw = document.getElementById('password').value;
     var err = document.getElementById('err');
     err.textContent = '';
@@ -37,7 +39,7 @@
       var resp = await fetch('/api/admin/login', {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw }),
+        body: JSON.stringify({ username: uname, password: pw }),
       });
       var data = await resp.json();
       if (!resp.ok || !data.ok) throw new Error(data.error || '登入失敗');
@@ -49,6 +51,9 @@
   document.getElementById('loginBtn').addEventListener('click', doLogin);
   document.getElementById('password').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('username').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('password').focus();
   });
 </script>
 </body>

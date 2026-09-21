@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const config = require('./config');
+const db = require('./db');
 const auth = require('./adminAuth');
 const repo = require('./customerRepo');
 const orderRepo = require('./orderRepo');
@@ -9,6 +9,7 @@ const faqRepo = require('./faqRepo');
 const historicalRepo = require('./historicalCustomerRepo');
 const catalogRepo = require('./catalogRepo');
 const templateRepo = require('./sampleTemplateRepo');
+const userRepo = require('./adminUserRepo');
 const line = require('./lineClient');
 const { SHIPPED_MESSAGE_TEMPLATE } = require('./productLines');
 
@@ -17,22 +18,31 @@ const router = express.Router();
 router.use(express.json({ limit: '20mb' }));
 
 // ---- 登入 / 登出 ----
-// 兩組密碼分別對應「一般管理者」（老闆，日常後台操作）跟「超級管理者」
-// （商品目錄／樣品模板的新增編輯，多一層權限），登入時依密碼決定角色存進 JWT。
-router.post('/api/admin/login', (req, res) => {
-  const { password } = req.body || {};
-  let role = null;
-  if (config.admin.superadminPassword && password === config.admin.superadminPassword) {
-    role = 'superadmin';
-  } else if (password && password === config.admin.password) {
-    role = 'admin';
+// 每人一組自己的帳號密碼（admin_users），不再用共用密碼。角色分三層：
+// staff（員工）/ admin（老闆，可管理 staff 帳號）/ superadmin（可管理所有帳號 + 商品目錄）。
+router.post('/api/admin/login', async (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    if (!username || !password) {
+      return res.status(400).json({ ok: false, error: '請輸入帳號與密碼' });
+    }
+    const user = await userRepo.findByUsername(String(username).trim());
+    const ok = user && user.is_active && (await userRepo.verifyPassword(user, password));
+    await db.query(
+      'INSERT INTO admin_login_log (ip, success, username, admin_user_id) VALUES ($1,$2,$3,$4)',
+      [ip, !!ok, username, user ? user.id : null]
+    );
+    if (!ok) {
+      return res.status(401).json({ ok: false, error: '帳號或密碼錯誤' });
+    }
+    const token = auth.issueToken(user.id);
+    auth.setAuthCookie(res, token);
+    res.json({ ok: true, role: user.role, username: user.username, displayName: user.display_name });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '登入失敗' });
   }
-  if (!role) {
-    return res.status(401).json({ ok: false, error: '密碼錯誤' });
-  }
-  const token = auth.issueToken(role);
-  auth.setAuthCookie(res, token);
-  res.json({ ok: true, role });
 });
 
 router.post('/api/admin/logout', (req, res) => {
@@ -40,12 +50,124 @@ router.post('/api/admin/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// 這個一次性路由只有在 admin_users 一個帳號都還沒有的時候才能用，用來建立第一批帳號
+// （超級管理者 + 老闆），之後 admin_users 只要有任何一筆資料就會永久鎖住，避免被濫用。
+router.post('/api/admin/bootstrap-accounts', async (req, res) => {
+  try {
+    const existing = await userRepo.count();
+    if (existing > 0) {
+      return res.status(403).json({ ok: false, error: '已經有帳號了，無法再次初始化' });
+    }
+    const { accounts } = req.body || {};
+    if (!Array.isArray(accounts) || !accounts.length) {
+      return res.status(400).json({ ok: false, error: '缺少 accounts 陣列' });
+    }
+    const created = [];
+    for (const a of accounts) {
+      if (!a.username || !a.password || !a.displayName || !a.role) {
+        return res.status(400).json({ ok: false, error: '每個帳號都要有 username/password/displayName/role' });
+      }
+      const user = await userRepo.create({
+        username: a.username,
+        password: a.password,
+        displayName: a.displayName,
+        role: a.role,
+      });
+      created.push({ id: user.id, username: user.username, role: user.role });
+    }
+    res.json({ ok: true, created });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '初始化帳號失敗（帳號可能重複）' });
+  }
+});
+
 router.get('/api/admin/me', auth.requireAdmin, (req, res) => {
-  res.json({ ok: true, role: req.adminRole });
+  res.json({
+    ok: true,
+    role: req.adminRole,
+    username: req.adminUser.username,
+    displayName: req.adminUser.display_name,
+  });
 });
 
 // ---- 以下都需要登入 ----
 router.use('/api/admin', auth.requireAdmin);
+
+// ---- 帳號管理：admin（老闆）只能管 staff 帳號，superadmin 能管所有人 ----
+router.get('/api/admin/accounts', auth.requireAccountManager, async (req, res) => {
+  try {
+    const all = await userRepo.listAll();
+    const visible = req.adminRole === 'superadmin' ? all : all.filter((u) => u.role === 'staff');
+    res.json({ ok: true, accounts: visible });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '讀取帳號列表失敗' });
+  }
+});
+
+router.post('/api/admin/accounts', auth.requireAccountManager, async (req, res) => {
+  try {
+    const { username, password, displayName } = req.body || {};
+    let { role } = req.body || {};
+    if (!username || !password || !displayName) {
+      return res.status(400).json({ ok: false, error: '請填寫帳號、密碼與顯示名稱' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ ok: false, error: '密碼至少要 6 碼' });
+    }
+    // 老闆（admin）只能開「員工」帳號，不能自己指定角色，也不能開出跟自己同級或更高權限的帳號
+    if (req.adminRole === 'admin') {
+      role = 'staff';
+    } else if (!userRepo.ROLES.includes(role)) {
+      return res.status(400).json({ ok: false, error: '不合法的角色' });
+    }
+    const user = await userRepo.create({ username, password, displayName, role, createdBy: req.adminUser.id });
+    res.json({ ok: true, account: user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '新增帳號失敗（帳號可能重複）' });
+  }
+});
+
+router.patch('/api/admin/accounts/:id', auth.requireAccountManager, async (req, res) => {
+  try {
+    const target = await userRepo.getById(req.params.id);
+    if (!target) return res.status(404).json({ ok: false, error: '找不到這個帳號' });
+    // 老闆（admin）只能動「員工」帳號，不能動其他 admin 或 superadmin 帳號（包含自己升降級）
+    if (req.adminRole === 'admin' && target.role !== 'staff') {
+      return res.status(403).json({ ok: false, error: '你只能管理員工帳號' });
+    }
+    const { displayName, isActive, role, newPassword } = req.body || {};
+    // 不能把最後一個還在啟用中的超級管理者停用或降級，避免整個後台被鎖死
+    if (target.role === 'superadmin' && (isActive === false || (role && role !== 'superadmin'))) {
+      const others = await userRepo.countActiveSuperadmins(target.id);
+      if (others === 0) {
+        return res.status(400).json({ ok: false, error: '至少要留一位有效的超級管理者' });
+      }
+    }
+    if (displayName !== undefined || isActive !== undefined) {
+      await userRepo.updateProfile(target.id, { displayName, isActive });
+    }
+    if (role !== undefined) {
+      if (req.adminRole !== 'superadmin') {
+        return res.status(403).json({ ok: false, error: '只有超級管理者能調整角色' });
+      }
+      await userRepo.updateRole(target.id, role);
+    }
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ ok: false, error: '密碼至少要 6 碼' });
+      }
+      await userRepo.resetPassword(target.id, newPassword);
+    }
+    const updated = await userRepo.getById(target.id);
+    res.json({ ok: true, account: userRepo.sanitize(updated) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: '更新帳號失敗' });
+  }
+});
 
 router.get('/api/admin/customers', async (req, res) => {
   try {

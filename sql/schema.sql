@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS admin_login_log (
   success     BOOLEAN NOT NULL,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE admin_login_log ADD COLUMN IF NOT EXISTS username VARCHAR(50);
+ALTER TABLE admin_login_log ADD COLUMN IF NOT EXISTS admin_user_id INTEGER;
 
 -- 熟客直接傳文字下單：機器人偵測到疑似下單訊息時，記錄下來並通知老闆，
 -- 不會自動當成正式訂單處理（仍要老闆在後台確認），避免誤判。
@@ -159,3 +161,22 @@ CREATE INDEX IF NOT EXISTS idx_template_items_template ON sample_template_items(
 -- catalog_item_id 允許 NULL，是保留給舊資料（改版前就存在的 sample_name 純文字紀錄）相容用。
 ALTER TABLE customer_samples ADD COLUMN IF NOT EXISTS catalog_item_id INTEGER REFERENCES catalog_items(id);
 ALTER TABLE customer_samples ADD COLUMN IF NOT EXISTS added_by VARCHAR(10) NOT NULL DEFAULT 'customer'; -- 'customer' | 'owner'
+
+-- 後台帳號：取代原本「一般管理者/超級管理者各一組共用密碼」的方式，改成每人一組自己的帳號密碼。
+-- role 分三層：
+--   staff（員工）  — 日常 CRM 操作（客戶看板、加碼、確認訂單、FAQ...），不能管理帳號、不能動商品目錄
+--   admin（老闆）  — 除了 staff 能做的事之外，可以自己在後台新增/停用「staff」帳號，但不能動商品目錄／樣品模板，
+--                    也不能新增其他 admin 或 superadmin 帳號
+--   superadmin（你）— 全部權限，包含商品目錄／樣品模板編輯，以及管理所有人的帳號（含 admin）
+-- is_active 停用帳號用（軟刪除），保留歷史操作紀錄的關聯不中斷。
+CREATE TABLE IF NOT EXISTS admin_users (
+  id             SERIAL PRIMARY KEY,
+  username       VARCHAR(50) UNIQUE NOT NULL,
+  password_hash  VARCHAR(255) NOT NULL,
+  display_name   VARCHAR(100) NOT NULL,
+  role           VARCHAR(20) NOT NULL DEFAULT 'staff', -- 'staff' | 'admin' | 'superadmin'
+  is_active      BOOLEAN NOT NULL DEFAULT true,
+  created_by     INTEGER REFERENCES admin_users(id),
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
