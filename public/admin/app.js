@@ -662,7 +662,7 @@
     });
   }
 
-  // ---- 商品目錄管理（超級管理者限定）----
+  // ---- 商品目錄管理（老闆/超級管理者限定）----
   function renderCatalogList() {
     var q = catalogSearchState.q.toLowerCase();
     var filtered = catalogItems.filter(function (it) {
@@ -750,7 +750,7 @@
     });
   }
 
-  // ---- 樣品模板管理（超級管理者限定）----
+  // ---- 樣品模板管理（老闆/超級管理者限定）----
   function renderTemplatesList() {
     if (!sampleTemplates.length) {
       templatesListEl.innerHTML = '<div class="empty">還沒有任何樣品模板</div>';
@@ -1005,7 +1005,7 @@
       });
     }
     if (currentRole === 'admin' || currentRole === 'superadmin') {
-      Array.prototype.forEach.call(document.querySelectorAll('.account-manager-only'), function (el) {
+      Array.prototype.forEach.call(document.querySelectorAll('.account-manager-only, .catalog-manager-only'), function (el) {
         el.style.display = '';
       });
       var hintEl = document.getElementById('accountsHint');

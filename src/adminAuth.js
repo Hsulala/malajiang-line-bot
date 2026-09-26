@@ -51,10 +51,19 @@ async function requireAdmin(req, res, next) {
   }
 }
 
-/** Express middleware：只有超級管理者能通過，用來保護商品目錄／樣品模板的新增編輯路由 */
+/** Express middleware：只有超級管理者能通過，目前僅保護帳號系統的敏感操作（例如首次初始化） */
 function requireSuperAdmin(req, res, next) {
   if (req.adminRole !== 'superadmin') {
     return res.status(403).json({ ok: false, error: '這個功能只有超級管理者能操作' });
+  }
+  next();
+}
+
+/** Express middleware：admin（老闆）或 superadmin 才能通過，用來保護商品目錄／樣品模板的新增編輯路由。
+ *  原本這兩份資料限「只有超級管理者」，經與 ULY 討論後開放給老闆自己維護，不用每次都找 ULY 改。 */
+function requireCatalogManager(req, res, next) {
+  if (req.adminRole !== 'admin' && req.adminRole !== 'superadmin') {
+    return res.status(403).json({ ok: false, error: '沒有權限管理商品目錄／樣品模板' });
   }
   next();
 }
@@ -75,5 +84,6 @@ module.exports = {
   clearAuthCookie,
   requireAdmin,
   requireSuperAdmin,
+  requireCatalogManager,
   requireAccountManager,
 };

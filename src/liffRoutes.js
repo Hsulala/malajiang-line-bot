@@ -4,6 +4,7 @@ const line = require('./lineClient');
 const repo = require('./customerRepo');
 const templateRepo = require('./sampleTemplateRepo');
 const catalogRepo = require('./catalogRepo');
+const { RECEIVED_MESSAGE_TEMPLATE } = require('./productLines');
 
 const router = express.Router();
 
@@ -81,6 +82,10 @@ router.post('/api/liff/submit', express.json(), async (req, res) => {
     const catalogItems = await catalogRepo.getByIds(ids);
     const samples = catalogItems.map((it) => ({ catalogItemId: it.id, name: it.name }));
     await repo.submitLiffForm(customer.id, { storeName, contactName, phone, address, samples });
+
+    // 回傳收件確認給客戶本人，讓他知道系統已經收到，避免因為 LIFF 視窗關掉後聊天室沒有留下任何訊息、
+    // 客戶不確定有沒有送出成功而重複詢問。這則跟下面通知老闆的訊息是分開推播的兩則。
+    await line.pushMessage(lineUserId, [line.textMessage(RECEIVED_MESSAGE_TEMPLATE)]);
 
     // 通知老闆有新客戶完成表單，等待確認訂單
     if (config.line.ownerUserId) {

@@ -403,7 +403,7 @@ router.post('/api/admin/historical-customers/import', async (req, res) => {
   }
 });
 
-// ---- 商品目錄（母目錄）：只有超級管理者能新增/編輯/下架，一般管理者只能瀏覽 ----
+// ---- 商品目錄（母目錄）：admin（老闆）與 superadmin 都能新增/編輯/下架，staff（員工）只能瀏覽 ----
 router.get('/api/admin/catalog-items', async (req, res) => {
   try {
     const items = await catalogRepo.listAll();
@@ -414,7 +414,7 @@ router.get('/api/admin/catalog-items', async (req, res) => {
   }
 });
 
-router.post('/api/admin/catalog-items', auth.requireSuperAdmin, async (req, res) => {
+router.post('/api/admin/catalog-items', auth.requireCatalogManager, async (req, res) => {
   try {
     const { category, name, spec, unitPrice, priceUnit, sortOrder } = req.body || {};
     if (!category || !name) {
@@ -428,7 +428,7 @@ router.post('/api/admin/catalog-items', auth.requireSuperAdmin, async (req, res)
   }
 });
 
-router.patch('/api/admin/catalog-items/:id', auth.requireSuperAdmin, async (req, res) => {
+router.patch('/api/admin/catalog-items/:id', auth.requireCatalogManager, async (req, res) => {
   try {
     const { category, name, spec, unitPrice, priceUnit, isActive, sortOrder } = req.body || {};
     if (!category || !name) {
@@ -452,7 +452,7 @@ router.patch('/api/admin/catalog-items/:id', auth.requireSuperAdmin, async (req,
 });
 
 // 下架（不做實體刪除，避免舊訂單/樣品紀錄的關聯斷掉）
-router.delete('/api/admin/catalog-items/:id', auth.requireSuperAdmin, async (req, res) => {
+router.delete('/api/admin/catalog-items/:id', auth.requireCatalogManager, async (req, res) => {
   try {
     const item = await catalogRepo.setActive(req.params.id, false);
     if (!item) return res.status(404).json({ ok: false, error: '找不到這個品項' });
@@ -463,7 +463,7 @@ router.delete('/api/admin/catalog-items/:id', auth.requireSuperAdmin, async (req
   }
 });
 
-router.post('/api/admin/catalog-items/import', auth.requireSuperAdmin, async (req, res) => {
+router.post('/api/admin/catalog-items/import', auth.requireCatalogManager, async (req, res) => {
   try {
     const { items } = req.body || {};
     if (!Array.isArray(items) || !items.length) {
@@ -477,7 +477,7 @@ router.post('/api/admin/catalog-items/import', auth.requireSuperAdmin, async (re
   }
 });
 
-// ---- 樣品模板（店家類型 + 建議樣品清單）：只有超級管理者能新增/編輯/下架，一般管理者只能瀏覽 ----
+// ---- 樣品模板（店家類型 + 建議樣品清單）：admin（老闆）與 superadmin 都能新增/編輯/下架，staff（員工）只能瀏覽 ----
 router.get('/api/admin/sample-templates', async (req, res) => {
   try {
     const templates = await templateRepo.listAll();
@@ -494,7 +494,7 @@ router.get('/api/admin/sample-templates', async (req, res) => {
   }
 });
 
-router.post('/api/admin/sample-templates', auth.requireSuperAdmin, async (req, res) => {
+router.post('/api/admin/sample-templates', auth.requireCatalogManager, async (req, res) => {
   try {
     const { key, label, triggerKeywords, introMessage, d2Message, d16Message, sortOrder, catalogItemIds } =
       req.body || {};
@@ -520,7 +520,7 @@ router.post('/api/admin/sample-templates', auth.requireSuperAdmin, async (req, r
   }
 });
 
-router.patch('/api/admin/sample-templates/:id', auth.requireSuperAdmin, async (req, res) => {
+router.patch('/api/admin/sample-templates/:id', auth.requireCatalogManager, async (req, res) => {
   try {
     const { label, triggerKeywords, introMessage, d2Message, d16Message, isActive, sortOrder, catalogItemIds } =
       req.body || {};
@@ -547,7 +547,7 @@ router.patch('/api/admin/sample-templates/:id', auth.requireSuperAdmin, async (r
   }
 });
 
-router.delete('/api/admin/sample-templates/:id', auth.requireSuperAdmin, async (req, res) => {
+router.delete('/api/admin/sample-templates/:id', auth.requireCatalogManager, async (req, res) => {
   try {
     const tpl = await templateRepo.setActive(req.params.id, false);
     if (!tpl) return res.status(404).json({ ok: false, error: '找不到這個模板' });
@@ -558,7 +558,7 @@ router.delete('/api/admin/sample-templates/:id', auth.requireSuperAdmin, async (
   }
 });
 
-router.post('/api/admin/sample-templates/import', auth.requireSuperAdmin, async (req, res) => {
+router.post('/api/admin/sample-templates/import', auth.requireCatalogManager, async (req, res) => {
   try {
     const { templates } = req.body || {};
     if (!Array.isArray(templates) || !templates.length) {

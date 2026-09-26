@@ -137,8 +137,8 @@
     <button class="tab-btn" data-view="orders">訂單記錄</button>
     <button class="tab-btn" data-view="faq">FAQ 知識庫</button>
     <button class="tab-btn" data-view="historical">歷史客戶紀錄</button>
-    <button class="tab-btn superadmin-only" data-view="catalog" style="display:none;">商品目錄</button>
-    <button class="tab-btn superadmin-only" data-view="templates" style="display:none;">樣品模板</button>
+    <button class="tab-btn catalog-manager-only" data-view="catalog" style="display:none;">商品目錄</button>
+    <button class="tab-btn catalog-manager-only" data-view="templates" style="display:none;">樣品模板</button>
     <button class="tab-btn account-manager-only" data-view="accounts" style="display:none;">帳號管理</button>
   </div>
 
@@ -198,7 +198,7 @@
     <div class="board-head">
       <div>
         <h2>商品目錄</h2>
-        <p>工廠完整批發品項，這裡改品名/價格/是否上架，樣品模板跟老闆加碼都是從這份目錄裡挑。只有超級管理者看得到這個分頁。</p>
+        <p>工廠完整批發品項，這裡改品名/價格/是否上架，樣品模板跟老闆加碼都是從這份目錄裡挑。老闆與超級管理者都能編輯，員工只能瀏覽。</p>
       </div>
       <button class="btn primary" id="addCatalogItemBtn">＋ 新增品項</button>
     </div>
@@ -212,7 +212,7 @@
     <div class="board-head">
       <div>
         <h2>樣品模板</h2>
-        <p>依店家類型設定開場話術、追蹤訊息，跟客戶在 LIFF 表單能選的候選品項（最多勾 7 樣）。只有超級管理者看得到這個分頁。</p>
+        <p>依店家類型設定開場話術、追蹤訊息，跟客戶在 LIFF 表單能選的候選品項（最多勾 7 樣）。老闆與超級管理者都能編輯，員工只能瀏覽。</p>
       </div>
       <button class="btn primary" id="addTemplateBtn">＋ 新增模板</button>
     </div>

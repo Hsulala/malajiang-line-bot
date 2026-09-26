@@ -23,9 +23,17 @@ const SHIPPED_MESSAGE_TEMPLATE =
   '【出貨通知】已為您安排出貨：\n{{shippingNote}}\n' +
   '樣品箱較小會分兩件寄送，僅收一次費用唷～';
 
+// 客戶在 LIFF 表單送出申請後，立即回傳給客戶的收件確認訊息（跟老闆收到的通知是分開推播的兩則）。
+// 目的是讓客戶知道系統已經收到資料，不用再重複詢問，等老闆確認訂單後才會再收到出貨通知。
+const RECEIVED_MESSAGE_TEMPLATE =
+  '【已收到您的申請】\n' +
+  '我們已經收到您填寫的收件資料與想試的樣品囉～\n' +
+  '確認後會盡快為您安排出貨，謝謝您的耐心等候！';
+
 module.exports = {
   WELCOME_MESSAGE,
   FALLBACK_MESSAGE,
   GENERIC_REPLY_ACK,
   SHIPPED_MESSAGE_TEMPLATE,
+  RECEIVED_MESSAGE_TEMPLATE,
 };
