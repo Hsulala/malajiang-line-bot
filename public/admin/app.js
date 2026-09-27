@@ -17,6 +17,10 @@
   var statsEl = document.getElementById('stats');
   var scrim = document.getElementById('scrim');
   var drawer = document.getElementById('drawer');
+  var navPanel = document.getElementById('tabs');
+  var navScrim = document.getElementById('navScrim');
+  var navToggleBtn = document.getElementById('navToggleBtn');
+  var navCloseBtn = document.getElementById('navCloseBtn');
   var toastEl = document.getElementById('toast');
   var ordersListEl = document.getElementById('ordersList');
   var faqListEl = document.getElementById('faqList');
@@ -987,8 +991,21 @@
     }
   }
   Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab-btn'), function (btn) {
-    btn.addEventListener('click', function () { switchView(btn.getAttribute('data-view')); });
+    btn.addEventListener('click', function () { switchView(btn.getAttribute('data-view')); closeNav(); });
   });
+
+  // ---- 手機版側邊選單（漢堡選單）----
+  function openNav() {
+    navPanel.classList.add('open');
+    navScrim.classList.add('open');
+  }
+  function closeNav() {
+    navPanel.classList.remove('open');
+    navScrim.classList.remove('open');
+  }
+  navToggleBtn.addEventListener('click', openNav);
+  navScrim.addEventListener('click', closeNav);
+  navCloseBtn.addEventListener('click', closeNav);
 
   async function init() {
     document.getElementById('todayDate').textContent = new Date().toLocaleDateString('zh-TW');
